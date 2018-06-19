@@ -1,0 +1,11 @@
+from distutils.core import setup
+
+setup(name="testrunner",
+      author="AIMS Software Team",
+      description="Utilities for running nose-based test suites",
+      url="http://github.com/cdat/TestsRunner",
+      packages=['testsrunner'],
+      package_dir={'testsrunner': 'lib'},
+      data_files=[("share/testsrunner",
+                   ["resources/image-compare.min.js", "resources/diff.html"])],
+      )
