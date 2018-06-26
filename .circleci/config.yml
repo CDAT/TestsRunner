@@ -81,6 +81,7 @@ jobs:
     steps:
       - checkout
       - run: *setup_miniconda
+      - run: *create_conda_env
       - run: *setup_testsrunner
       - run: *run_tests
       - run: *conda_upload
@@ -100,6 +101,7 @@ jobs:
     steps:
       - checkout
       - run: *setup_miniconda
+      - run: *create_conda_env
       - run: *setup_testsrunner
       - run: *run_tests
       - run: *conda_upload
