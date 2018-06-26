@@ -12,12 +12,24 @@ aliases:
       git clone -b validateNightly git@github.com:CDAT/cdat workspace/cdat
       python workspace/cdat/scripts/install_miniconda.py -w $WORKDIR -p 'py3'
 
+  - &create_conda_env
+    name: create_conda_env
+    command: |
+       export PATH=$WORKDIR/miniconda/bin:$PATH
+       conda config --set always_yes yes --set changeps1 no
+       conda update -y -q conda
+       conda config --set anaconda_upload no
+       conda create -q -n py2 -c cdat/label/nightly -c conda-forge -c cdat requests cdp
+       conda create -q -n py3 -c cdat/label/nightly -c conda-forge -c cdat requests cdp
+
   - &setup_testsrunner
     name: setup_testsrunner
     command: |
        export PATH=$WORKDIR/miniconda/bin:$PATH
        export UVCDAT_ANONYMOUS_LOG=False
-       source activate base
+       source activate py2
+       python setup.py install
+       source activate py3
        python setup.py install
 
   - &run_tests
