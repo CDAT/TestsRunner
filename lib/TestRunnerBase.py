@@ -16,6 +16,7 @@ from .image_compare import script_data
 SUCCESS = 0
 FAILURE = 1
 
+
 class TestRunnerBase(object):
 
     """
@@ -27,7 +28,8 @@ class TestRunnerBase(object):
          args, get_sample_data)
       runner.run(workdir, args.tests)
     """
-    def __init__(self, test_suite_name, options=[], options_files=[], get_sample_data=False, 
+
+    def __init__(self, test_suite_name, options=[], options_files=[], get_sample_data=False,
                  test_data_files_info=None):
         """
            test_suite_name: test suite name
@@ -38,18 +40,24 @@ class TestRunnerBase(object):
            test_data_files_info: file name of a text file containing list of 
                             data files needed for the test suite.
         """
-        options_files.insert(0,os.path.join(sys.prefix,"share","cdat","cdat_runtests.json"))
+        options_files.insert(0,os.path.join(
+            sys.prefix, "share", "testsrunner", "testsrunner.json"))
         # Remove possible duplicates
-        options_files = set(options_files)
-        parser = cdp.cdp_parser.CDPParser(None, list(options_files))
-        parser.add_argument("tests",nargs="*",help="Tests to run")
+        options_files_used = []
+        for filename in options_files:
+            if filename not in options_files_used:
+                options_files_used.append(filename)
 
-        options += ["--coverage","--verbosity","--num_workers","--attributes",
-                    "--parameters","--diags","--baseline","--checkout_baseline",
-                    "--html", "--failed","--package"]
+        print("OPTIONS FILES:", options_files_used)
+        parser = cdp.cdp_parser.CDPParser(None, options_files_used)
+        parser.add_argument("tests", nargs="*", help="Tests to run")
+
+        options += ["--coverage", "--verbosity", "--num_workers", "--attributes",
+                    "--parameters", "--diags", "--baseline", "--checkout-baseline",
+                    "--html", "--failed", "--package"]
         for option in set(options):
             parser.use(option)
-        
+
         self.args = parser.get_parameter()
         self.test_suite_name = test_suite_name
 
@@ -59,10 +67,11 @@ class TestRunnerBase(object):
 
         if get_sample_data == True:
             if test_data_files_info is None:
-                test_data_files_info = os.path.join("share","test_data_files.txt")
-            download_sample_data_files(test_data_files_info, get_sampledata_path())
-            
-    
+                test_data_files_info = os.path.join(
+                    "share", "test_data_files.txt")
+            download_sample_data_files(
+                test_data_files_info, get_sampledata_path())
+
     def __get_tests(self, tests=None):
         """
         get_tests() gets the list of test names to run.
@@ -80,7 +89,7 @@ class TestRunnerBase(object):
         else:
             test_names = set(tests)
 
-        if self.args.failed and os.path.exists(os.path.join("tests",".last_failure")):
+        if self.args.failed and os.path.exists(os.path.join("tests", ".last_failure")):
             f = open(os.path.join("tests", ".last_failure"))
             failed = set(eval(f.read().strip()))
             f.close()
@@ -92,14 +101,14 @@ class TestRunnerBase(object):
 
         return test_names
 
-
     def __get_baseline(self, workdir):
         """
         __get_baseline(self, workdir):
         <workdir> : should be repo dir of the test
-        """    
+        """
         os.chdir(workdir)
-        ret_code, cmd_output = self.__run_cmd('git rev-parse --abbrev-ref HEAD')
+        ret_code, cmd_output = self.__run_cmd(
+            'git rev-parse --abbrev-ref HEAD')
         o = "".join(cmd_output)
         branch = o.strip()
         repo = os.path.basename(self.args.baseline)
@@ -112,7 +121,7 @@ class TestRunnerBase(object):
         ret_code, cmd_output = self.__run_cmd("git pull")
         if ret_code != SUCCESS:
             return ret_code
-        if self.verbosity>1:
+        if self.verbosity > 1:
             print("BRANCH WE ARE TRYING TO CHECKOUT is (%s)" % branch)
         ret_code, cmd_output = self.__run_cmd("git checkout %s" % (branch))
         os.chdir(workdir)
@@ -126,17 +135,16 @@ class TestRunnerBase(object):
         """Place holder extend this if you want more options"""
         return []
 
-
     def __do_run_tests(self, test_names):
         ret_code = SUCCESS
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
         if self.args.coverage:
-            opts += ["--with-coverage"]
+            opts += ["--with-coverage", "--cover-html", "--cover-xml"]
         for att in self.args.attributes:
             opts += ["-A", att]
-        func = partial(run_nose,opts, self.verbosity)
+        func = partial(run_nose, opts, self.verbosity)
         try:
             outs = p.map_async(func, test_names).get(3600)
         except KeyboardInterrupt:
@@ -148,14 +156,14 @@ class TestRunnerBase(object):
             test_name = list(d.keys())[0]
             if d[test_name]["result"] != 0:
                 failed.append(test_name)
-        f = open(os.path.join("tests",".last_failure"),"w")
+        f = open(os.path.join("tests", ".last_failure"), "w")
         f.write(repr(failed))
         f.close()
 
         if self.verbosity > 0:
-            if len(outs)>0:
-                print("Ran %i tests, %i failed (%.2f%% success)" %\
-                        (len(outs), len(failed), 100. - float(len(failed)) / len(outs) * 100.))
+            if len(outs) > 0:
+                print("Ran %i tests, %i failed (%.2f%% success)" %
+                      (len(outs), len(failed), 100. - float(len(failed)) / len(outs) * 100.))
             else:
                 print("No test run")
             if len(failed) > 0:
@@ -173,7 +181,8 @@ class TestRunnerBase(object):
         full_path = os.path.abspath(os.path.join(os.getcwd(), "..", path))
         if not os.path.exists(name):
             os.makedirs(name)
-        new_path = os.path.join(name, prefix + "_" + os.path.basename(full_path))
+        new_path = os.path.join(name, prefix + "_" +
+                                os.path.basename(full_path))
         try:
             shutil.copy(full_path, new_path)
         except:
@@ -202,7 +211,7 @@ class TestRunnerBase(object):
                             file2 = log[k].split()[2]
                         except:
                             file2 = log[k].split()[1][:-1]+log[j].split()[0]
-                            print("+++++++++++++++++++++++++",file2)
+                            print("+++++++++++++++++++++++++", file2)
                 if log[j].find("Saving image diff") > -1:
                     diff = log[j].split()[-1]
                     # break
@@ -256,39 +265,38 @@ class TestRunnerBase(object):
                 print("<h1>Failed test: %s on %s</h1>" % (nm, time.asctime()), file=fe)
                 file1, file2, diff = self.__findDiffFiles(result["log"])
                 if file1 != "":
-                    print('<div id="comparison"></div><script type="text/javascript"> ImageCompare.compare(' +\
-                              'document.getElementById("comparison"), "%s", "%s"); </script>' % (
-                            abspath(file2, nm, "test"), abspath(file1, nm, "source")), file=fe)
+                    print('<div id="comparison"></div><script type="text/javascript"> ImageCompare.compare(' +
+                          'document.getElementById("comparison"), "%s", "%s"); </script>' % (
+                              self.__abspath(file2, nm, "test"), self.__abspath(file1, nm, "source")), file=fe)
                     print("<div><a href='index.html'>Back To Results List</a></div>", file=fe)
                     print("<div id='diff'><img src='%s' alt='diff file'></div>" % abspath(
-                                diff, nm, "diff"), file=fe)
+                        diff, nm, "diff"), file=fe)
                     print("<div><a href='index.html'>Back To Results List</a></div>", file=fe)
             print('<div id="output"><h1>Log</h1><pre>%s</pre></div>' % "\n".join(result[
-                        "log"]), file=fe)
+                "log"]), file=fe)
             print("<a href='index.html'>Back To Results List</a>", file=fe)
             print("</body></html>", file=fe)
             fe.close()
             t = result["times"]
             print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                    time.ctime(t["start"]), time.ctime(t["end"]), t["end"] - t["start"]), file=fi)
-            
+                time.ctime(t["start"]), time.ctime(t["end"]), t["end"] - t["start"]), file=fi)
+
         print("</table></body></html>", file=fi)
         fi.close()
         os.chdir(workdir)
         webbrowser.open("file://%s/tests_html/index.html" % workdir)
 
-
     def __package_results(self, workdir):
         os.chdir(workdir)
         import tarfile
-        tnm = "results_%s_%s_%s.tar.bz2" % (os.uname()[0],os.uname()[1],time.strftime("%Y-%m-%d_%H:%M"))
+        tnm = "results_%s_%s_%s.tar.bz2" % (
+            os.uname()[0], os.uname()[1], time.strftime("%Y-%m-%d_%H:%M"))
         t = tarfile.open(tnm, "w:bz2")
         t.add("tests_html")
         t.add("tests_html")
         t.close()
         if self.verbosity > 0:
             print("Packaged Result Info in:", tnm)
-            
 
     def run(self, workdir, tests=None):
         """
@@ -314,5 +322,3 @@ class TestRunnerBase(object):
             self.__package_results(workdir)
 
         return ret_code
-
-            

@@ -7,5 +7,5 @@ setup(name="testrunner",
       packages=['testsrunner'],
       package_dir={'testsrunner': 'lib'},
       data_files=[("share/testsrunner",
-                   ["resources/image-compare.min.js", "resources/diff.html"])],
+                   ["resources/testsrunner.json", "resources/image-compare.min.js", "resources/diff.html"])],
       )
