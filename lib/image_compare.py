@@ -8,14 +8,22 @@ def script_data():
     with open(os.path.join(sys.prefix, "share", "testsrunner",
                            "image-compare.min.js")) as f:
         data = f.read()
-    return data.decode("utf-8")
+    #py3 vs py2
+    try:
+        return data.decode("utf-8")
+    except AttributeError:
+        return data
 
 
 def template_data():
     with open(os.path.join(sys.prefix, "share", "testsrunner",
                            "diff.html")) as f:
         data = f.read()
-    return data.decode("utf-8")
+    #py3 vs py2
+    try:
+        return data.decode("utf-8")
+    except AttributeError:
+        return data
 
 
 def compare(img1, img2, outpath):
