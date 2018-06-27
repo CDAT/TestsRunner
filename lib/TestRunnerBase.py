@@ -83,6 +83,7 @@ class TestRunnerBase(object):
         If <failed_only> is True, and <tests> is specified, returns
         the set of failed test names that is listed in <tests>
         """
+        print("TESTS:",tests)
         if tests is None or len(tests) == 0:
             # run all tests
             test_names = glob.glob("tests/test_*py")
@@ -157,6 +158,10 @@ class TestRunnerBase(object):
             test_name = list(d.keys())[0]
             if d[test_name]["result"] != 0:
                 failed.append(test_name)
+        try:
+            os.makedirs("tests")
+        except Exception:
+            pass
         f = open(os.path.join("tests", ".last_failure"), "w")
         f.write(repr(failed))
         f.close()
@@ -334,7 +339,7 @@ class TestRunnerBase(object):
         tests  : a space separated list of test cases
         """
         os.chdir(workdir)
-        test_names = self.__get_tests(tests)
+        test_names = self.__get_tests(self.args.tests)
 
         if self.args.checkout_baseline:
             ret_code = self.__get_baseline(workdir)
