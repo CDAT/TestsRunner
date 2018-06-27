@@ -48,7 +48,6 @@ class TestRunnerBase(object):
             if filename not in options_files_used:
                 options_files_used.append(filename)
 
-        print("OPTIONS FILES:", options_files_used)
         parser = cdp.cdp_parser.CDPParser(None, options_files_used)
         parser.add_argument("tests", nargs="*", help="Tests to run")
 
