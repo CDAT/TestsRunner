@@ -83,7 +83,6 @@ class TestRunnerBase(object):
         If <failed_only> is True, and <tests> is specified, returns
         the set of failed test names that is listed in <tests>
         """
-        print("TESTS:",tests)
         if tests is None or len(tests) == 0:
             # run all tests
             test_names = glob.glob("tests/test_*py")
