@@ -3,6 +3,11 @@ import os
 from jinja2 import Template
 import codecs
 
+try:
+    raw_input
+except NameError:
+    raw_input = input
+
 
 def script_data():
     with open(os.path.join(sys.prefix, "share", "testsrunner",
