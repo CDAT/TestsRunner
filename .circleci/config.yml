@@ -19,8 +19,8 @@ aliases:
        conda config --set always_yes yes --set changeps1 no
        conda update -y -q conda
        conda config --set anaconda_upload no
-       conda create -q -n py2 -c cdat/label/nightly -c conda-forge -c cdat requests cdp flake8 nose
-       conda create -q -n py3 -c cdat/label/nightly -c conda-forge -c cdat requests cdp flake8 nose
+       conda create -q -n py2 -c cdat/label/nightly -c conda-forge -c cdat requests cdp flake8 nose python=2
+       conda create -q -n py3 -c cdat/label/nightly -c conda-forge -c cdat requests cdp flake8 nose python=3
 
   - &setup_testsrunner
     name: setup_testsrunner
