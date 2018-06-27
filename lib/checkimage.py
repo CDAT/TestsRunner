@@ -5,15 +5,13 @@ the known good baseline given in the third. Alternate known good images
 """
 
 from __future__ import print_function
-import math
 import os
 import sys
-import logging
 import shutil
 try:
     import vtk
     hasVTK = True
-except:
+except Exception:
     hasVTK = False
 
 defaultThreshold = 10.0
@@ -60,13 +58,13 @@ def find_alternates(fname):
 
 
 def printDart(name, type, value, suff=""):
-        print('<DartMeasurement%s name="%s" type="%s">%s</DartMeasurement%s>' % (
-            suff, name, type, value, suff))
+    print('<DartMeasurement%s name="%s" type="%s">%s</DartMeasurement%s>' % (
+        suff, name, type, value, suff))
 
 
 def check_result_image(fname, baselinefname, threshold=defaultThreshold,
                        baseline=True, cleanup=True, update_baseline=False):
-                    
+
     if not hasVTK:
         print("Could not load VTK. Aborting image compare")
         return -1
@@ -147,20 +145,22 @@ def check_result_image(fname, baselinefname, threshold=defaultThreshold,
     printDart("ValidImage", "image/png", os.path.abspath(bestFilename), "File")
     return -1
 
-def checkImage(fnm, canvas, src=None, threshold=defaultThreshold,
-                pngReady=False, pngPathSet=False, verbosity=1):
-    if src is None:
-        src = os.path.join(self.basedir, os.path.basename(fnm))
+
+def checkImage(filename, canvas, baseDirectory, pngsDirectory,
+               source=None, threshold=defaultThreshold,
+               pngReady=False, pngPathSet=False, verbosity=1):
+    if source is None:
+        source = os.path.join(baseDirectory, os.path.basename(filename))
     if not pngPathSet:
-        fnm = os.path.join(self.pngsdir, fnm)
-    if verbosity>0:
-        print("Test file  :", fnm)
-        print("Source file:", src)
+        filename = os.path.join(pngsDirectory, filename)
+    if verbosity > 0:
+        print("Test file  :", filename)
+        print("Source file:", source)
     if not pngReady:
         canvas.png(
-            fnm,
+            filename,
             width=canvas.width,
             height=canvas.height,
             units="pixels")
-    ret = check_result_image(fnm, src, threshold)
+    ret = check_result_image(filename, source, threshold)
     return ret

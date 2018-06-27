@@ -4,14 +4,12 @@ import glob
 import sys
 import os
 import multiprocessing
-import subprocess
 import codecs
 import time
 import webbrowser
-import shlex
 import cdp
-import warnings
-from .Util import run_command, download_sample_data_files, get_sampledata_path, run_nose
+from .Util import run_command, download_sample_data_files
+from .Util import get_sampledata_path, run_nose
 from .image_compare import script_data
 SUCCESS = 0
 FAILURE = 1
@@ -21,26 +19,28 @@ class TestRunnerBase(object):
 
     """
     This is a base class for a test runner.
-    Each test project's run_tests.py should instantiate this TestRunnerBase class,
-    and call the run() method. For example:
+    Each test project's run_tests.py should instantiate this TestRunnerBase
+    class, and call the run() method. For example:
 
-      runner = TestRunnerBase.TestRunnerBase(test_suite_name, valid_options, 
+      runner = TestRunnerBase.TestRunnerBase(test_suite_name, valid_options,
          args, get_sample_data)
       runner.run(workdir, args.tests)
     """
 
-    def __init__(self, test_suite_name, options=[], options_files=[], get_sample_data=False,
-                 test_data_files_info=None):
+    def __init__(self, test_suite_name, options=[], options_files=[],
+                 get_sample_data=False, test_data_files_info=None):
         """
            test_suite_name: test suite name
-           options        : options to use (in addition of default options always here)
-           options_files  : json files defining cdp/addparse argument definitions
+           options        : options to use (in addition of default options
+                            always here)
+           options_files  : json files defining cdp/addparse argument
+                            definitions
            get_sample_data: specifies whether sample data should be downloaded
                             for the test run.
-           test_data_files_info: file name of a text file containing list of 
+           test_data_files_info: file name of a text file containing list of
                             data files needed for the test suite.
         """
-        options_files.insert(0,os.path.join(
+        options_files.insert(0, os.path.join(
             sys.prefix, "share", "testsrunner", "testsrunner.json"))
         # Remove possible duplicates
         options_files_used = []
@@ -51,8 +51,9 @@ class TestRunnerBase(object):
         parser = cdp.cdp_parser.CDPParser(None, options_files_used)
         parser.add_argument("tests", nargs="*", help="Tests to run")
 
-        options += ["--coverage", "--verbosity", "--num_workers", "--attributes",
-                    "--parameters", "--diags", "--baseline", "--checkout-baseline",
+        options += ["--coverage", "--verbosity", "--num_workers",
+                    "--attributes", "--parameters", "--diags",
+                    "--baseline", "--checkout-baseline",
                     "--html", "--failed", "--package"]
         for option in set(options):
             parser.use(option)
@@ -64,7 +65,7 @@ class TestRunnerBase(object):
 
         self.ncpus = self.args.num_workers
 
-        if get_sample_data == True:
+        if get_sample_data is True:
             if test_data_files_info is None:
                 test_data_files_info = os.path.join(
                     "share", "test_data_files.txt")
@@ -79,7 +80,7 @@ class TestRunnerBase(object):
         under 'tests' sub directory.
         If <failed_only> is True, returns the set of failed test names
         from previous run.
-        If <failed_only> is True, and <tests> is specified, returns 
+        If <failed_only> is True, and <tests> is specified, returns
         the set of failed test names that is listed in <tests>
         """
         if tests is None or len(tests) == 0:
@@ -88,7 +89,8 @@ class TestRunnerBase(object):
         else:
             test_names = set(tests)
 
-        if self.args.failed and os.path.exists(os.path.join("tests", ".last_failure")):
+        if self.args.failed and os.path.exists(os.path.join("tests",
+                                                            ".last_failure")):
             f = open(os.path.join("tests", ".last_failure"))
             failed = set(eval(f.read().strip()))
             f.close()
@@ -162,7 +164,8 @@ class TestRunnerBase(object):
         if self.verbosity > 0:
             if len(outs) > 0:
                 print("Ran %i tests, %i failed (%.2f%% success)" %
-                      (len(outs), len(failed), 100. - float(len(failed)) / len(outs) * 100.))
+                      (len(outs), len(failed), 100. - float(len(failed)) /
+                       len(outs) * 100.))
             else:
                 print("No test run")
             if len(failed) > 0:
@@ -184,7 +187,7 @@ class TestRunnerBase(object):
                                 os.path.basename(full_path))
         try:
             shutil.copy(full_path, new_path)
-        except:
+        except Exception:
             pass
         return new_path
 
@@ -208,7 +211,7 @@ class TestRunnerBase(object):
                             k -= 1
                         try:
                             file2 = log[k].split()[2]
-                        except:
+                        except Exception:
                             file2 = log[k].split()[1][:-1]+log[j].split()[0]
                             print("+++++++++++++++++++++++++", file2)
                 if log[j].find("Saving image diff") > -1:
@@ -227,24 +230,35 @@ class TestRunnerBase(object):
 
         fi = open("index.html", "w")
         print("<!DOCTYPE html>", file=fi)
-        print("""<html><head><title>%s Test Results %s</title>
-    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.13/css/jquery.dataTables.css">
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.12.4.js"></script>
-    <script type="text/javascript" charset="utf8"
-    src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
-    <script>
-    $(document).ready( function () {
-            $('#table_id').DataTable({
-            "order":[[1,'asc'],[0,'asc']],
-            "scrollY":"70vh","paging":false,"scrollCollapse":false
-            });
-                } );
-    </script>
-    </head>""" % (self.test_suite_name, time.asctime()), file=fi)
-        print("<body><h1>%s Test results: %s</h1>" % (self.test_suite_name, time.asctime()), file=fi)
+        html_str = '<html><head>' + \
+            '<title>%s Test Results %s</title>' + \
+            '<link rel="stylesheet" type="text/css"' + \
+            'href="' + \
+            'http://cdn.datatables.net/1.10.13/css/jquery.dataTables.css">' +\
+            '<script type="text/javascript"' + \
+            ' src="http://code.jquery.com/jquery-1.12.4.js"></script>' + \
+            '<script type="text/javascript" charset="utf8" ' + \
+            'src="https://' + \
+            'cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js' + \
+            '">' + \
+            '</script>' + \
+            '<script>' + \
+            '$(document).ready( function () {' + \
+            " $('#table_id').DataTable({" + \
+            " \"order\":[[1,'asc'],[0,'asc']]," + \
+            ' "scrollY":"70vh","paging":false,"scrollCollapse":false' + \
+            '  });' + \
+            ' } );' + \
+            '</script>' + \
+            '</head>'
+        print(html_str % (self.test_suite_name, time.asctime()), file=fi)
+        print("<body><h1>%s Test results: %s</h1>" % (self.test_suite_name,
+                                                      time.asctime()), file=fi)
         print("<table id='table_id' class='display'>", file=fi)
-        print("<thead><tr><th>Test</th><th>Result</th><th>Start Time</th><th>End Time</th><th>Time</th></tr></thead>", file=fi)
-        print("<tfoot><tr><th>Test</th><th>Result</th><th>Start Time</th><th>End Time</th><th>Time</th></tr></tfoot>", file=fi)
+        print("<thead><tr><th>Test</th><th>Result</th><th>Start Time</th>"
+              "<th>End Time</th><th>Time</th></tr></thead>", file=fi)
+        print("<tfoot><tr><th>Test</th><th>Result</th><th>Start Time</th>"
+              "<th>End Time</th><th>Time</th></tr></tfoot>", file=fi)
 
         for t in sorted(self.results.keys()):
             result = self.results[t]
@@ -254,31 +268,45 @@ class TestRunnerBase(object):
             print("<!DOCTYPE html>", file=fe)
             print("<html><head><title>%s</title>" % nm, file=fe)
             if result["result"] == 0:
-                print("<td><a href='%s.html'>OK</a></td>" % nm, end=' ', file=fi)
+                print("<td><a href='%s.html'>OK</a></td>" % nm, end=' ',
+                      file=fi)
                 print("</head><body>", file=fe)
                 print("<a href='index.html'>Back To Results List</a>", file=fe)
             else:
-                print("<td><a href='%s.html'>Fail</a></td>" % nm, end=' ', file=fi)
-                print("<script type='text/javascript'>%s</script></head><body>" % js, file=fe)
+                print("<td><a href='%s.html'>Fail</a></td>" % nm,
+                      end=' ', file=fi)
+                print("<script type='text/javascript'>%s</script></head><body>"
+                      % js, file=fe)
                 print("<a href='index.html'>Back To Results List</a>", file=fe)
-                print("<h1>Failed test: %s on %s</h1>" % (nm, time.asctime()), file=fe)
+                print("<h1>Failed test: %s on %s</h1>" % (nm, time.asctime()),
+                      file=fe)
                 file1, file2, diff = self.__findDiffFiles(result["log"])
                 if file1 != "":
-                    print('<div id="comparison"></div><script type="text/javascript"> ImageCompare.compare(' +
-                          'document.getElementById("comparison"), "%s", "%s"); </script>' % (
-                              self.__abspath(file2, nm, "test"), self.__abspath(file1, nm, "source")), file=fe)
-                    print("<div><a href='index.html'>Back To Results List</a></div>", file=fe)
-                    print("<div id='diff'><img src='%s' alt='diff file'></div>" % abspath(
-                        diff, nm, "diff"), file=fe)
-                    print("<div><a href='index.html'>Back To Results List</a></div>", file=fe)
-            print('<div id="output"><h1>Log</h1><pre>%s</pre></div>' % "\n".join(result[
-                "log"]), file=fe)
+                    print('<div id="comparison"></div><script' +
+                          ' type="text/javascript">' +
+                          ' ImageCompare.compare(' +
+                          'document.getElementById("comparison"),' +
+                          ' "%s", "%s"); </script>' % (
+                              self.__abspath(file2, nm, "test"),
+                              self.__abspath(file1, nm, "source")), file=fe)
+                    print("<div><a href='index.html'>Back " +
+                          "To Results List</a></div>", file=fe)
+                    print("<div id='diff'><img src='" +
+                          "%s' alt='diff file'></div>" % self.abspath(diff,
+                                                                      nm,
+                                                                      "diff"),
+                          file=fe)
+                    print("<div><a href='index.html'>Back To" +
+                          " Results List</a></div>", file=fe)
+            print('<div id="output"><h1>Log</h1><pre>' +
+                  '%s</pre></div>' % "\n".join(result["log"]), file=fe)
             print("<a href='index.html'>Back To Results List</a>", file=fe)
             print("</body></html>", file=fe)
             fe.close()
             t = result["times"]
             print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                time.ctime(t["start"]), time.ctime(t["end"]), t["end"] - t["start"]), file=fi)
+                time.ctime(t["start"]), time.ctime(t["end"]),
+                t["end"] - t["start"]), file=fi)
 
         print("</table></body></html>", file=fi)
         fi.close()
@@ -299,7 +327,8 @@ class TestRunnerBase(object):
 
     def run(self, workdir, tests=None):
         """
-        runs the specified test cases. If tests is None, runs the whole testsuite.
+        runs the specified test cases.
+        If tests is None, runs the whole testsuite.
 
         workdir: top level project repo directory
         tests  : a space separated list of test cases
