@@ -334,7 +334,7 @@ class TestRunnerBase(object):
         print("</table></body></html>", file=failed_fi)
         fi.close()
         failed_fi.close()
-        if any_failed_tests == False:
+        if any_failed_tests is False:
             # all tests passed, then delete the failed_tests_index.html
             os.remove("failed_tests_index.html")
 
