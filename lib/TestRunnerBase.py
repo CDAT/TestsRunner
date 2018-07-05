@@ -265,12 +265,16 @@ class TestRunnerBase(object):
             js = script_data()
 
         fi = open("index.html", "w")
+        failed_fi = open("failed_index.html", "w")
         self.__write_html_header(fi)
+        self.__write_html_header(failed_fi)
 
+        any_failed_tests = False
         for t in sorted(self.results.keys()):
             result = self.results[t]
             nm = t.split("/")[-1][:-3]
             print("<tr><td>%s</td>" % nm, end=' ', file=fi)
+            print("<tr><td>%s</td>" % nm, end=' ', file=failed_fi)
             fe = codecs.open("%s.html" % nm, "w", encoding="utf-8")
             print("<!DOCTYPE html>", file=fe)
             print("<html><head><title>%s</title>" % nm, file=fe)
@@ -280,8 +284,11 @@ class TestRunnerBase(object):
                 print("</head><body>", file=fe)
                 print("<a href='index.html'>Back To Results List</a>", file=fe)
             else:
+                any_failed_tests = True
                 print("<td><a href='%s.html'>Fail</a></td>" % nm,
                       end=' ', file=fi)
+                print("<td><a href='%s.html'>Fail</a></td>" % nm,
+                      end=' ', file=failed_fi)
                 print("<script type='text/javascript'>%s</script></head><body>"
                       % js, file=fe)
                 print("<a href='index.html'>Back To Results List</a>", file=fe)
@@ -314,9 +321,14 @@ class TestRunnerBase(object):
             print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
                 time.ctime(t["start"]), time.ctime(t["end"]),
                 t["end"] - t["start"]), file=fi)
+            print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
+                time.ctime(t["start"]), time.ctime(t["end"]),
+                t["end"] - t["start"]), file=failed_fi)
 
         print("</table></body></html>", file=fi)
+        print("</table></body></html>", file=failed_fi)
         fi.close()
+        failed_fi.close()
         os.chdir(workdir)
         webbrowser.open("file://%s/tests_html/index.html" % workdir)
 
