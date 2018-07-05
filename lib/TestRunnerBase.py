@@ -264,7 +264,6 @@ class TestRunnerBase(object):
         if image_difference:
             js = script_data()
 
-        any_failed_tests = False
         fi = open("index.html", "w")
         self.__write_html_header(fi)
 
