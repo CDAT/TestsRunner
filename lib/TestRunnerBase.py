@@ -266,7 +266,7 @@ class TestRunnerBase(object):
 
         any_failed_tests = False
         fi = open("index.html", "w")
-        failed_fi = open("failed_tests_index.html", "w")
+        failed_fi = open("failed_index.html", "w")
         self.__write_html_header(fi)
         self.__write_html_header(failed_fi)
 
@@ -325,7 +325,7 @@ class TestRunnerBase(object):
                 t["end"] - t["start"]), file=failed_fi)
 
         if any_failed_tests:
-            print("<td><a href='failed_tests_index.html'>Failed tests only</a></td>",
+            print("<td><a href='failed_index.html'>Failed tests</a></td>",
                   file=fi)
             print("<td><a href='index.html'>Back To Results List</a></td>",
                   file=failed_fi)
