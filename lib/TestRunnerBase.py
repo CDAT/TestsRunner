@@ -269,7 +269,6 @@ class TestRunnerBase(object):
         self.__write_html_header(fi)
         self.__write_html_header(failed_fi)
 
-        any_failed_tests = False
         for t in sorted(self.results.keys()):
             result = self.results[t]
             nm = t.split("/")[-1][:-3]
@@ -284,7 +283,6 @@ class TestRunnerBase(object):
                 print("</head><body>", file=fe)
                 print("<a href='index.html'>Back To Results List</a>", file=fe)
             else:
-                any_failed_tests = True
                 print("<td><a href='%s.html'>Fail</a></td>" % nm,
                       end=' ', file=fi)
                 print("<td><a href='%s.html'>Fail</a></td>" % nm,
