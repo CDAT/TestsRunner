@@ -324,12 +324,6 @@ class TestRunnerBase(object):
                 time.ctime(t["start"]), time.ctime(t["end"]),
                 t["end"] - t["start"]), file=failed_fi)
 
-        #if any_failed_tests:
-        #    print("<a href='failed_index.html'>Failed tests</a>",
-        #          file=fi)
-        #    print("<a href='index.html'>Back To Results List</a>",
-        #          file=failed_fi)
-
         print("</table></body></html>", file=fi)
         print("</table></body></html>", file=failed_fi)
         fi.close()
