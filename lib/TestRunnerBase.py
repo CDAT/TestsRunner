@@ -266,9 +266,7 @@ class TestRunnerBase(object):
 
         any_failed_tests = False
         fi = open("index.html", "w")
-        failed_fi = open("failed_index.html", "w")
         self.__write_html_header(fi)
-        self.__write_html_header(failed_fi)
 
         for t in sorted(self.results.keys()):
             result = self.results[t]
@@ -283,11 +281,8 @@ class TestRunnerBase(object):
                 print("</head><body>", file=fe)
                 print("<a href='index.html'>Back To Results List</a>", file=fe)
             else:
-                any_failed_tests = True
                 print("<td><a href='%s.html'>Fail</a></td>" % nm,
                       end=' ', file=fi)
-                print("<td><a href='%s.html'>Fail</a></td>" % nm,
-                      end=' ', file=failed_fi)
                 print("<script type='text/javascript'>%s</script></head><body>"
                       % js, file=fe)
                 print("<a href='index.html'>Back To Results List</a>", file=fe)
@@ -320,21 +315,11 @@ class TestRunnerBase(object):
             print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
                 time.ctime(t["start"]), time.ctime(t["end"]),
                 t["end"] - t["start"]), file=fi)
-            print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                time.ctime(t["start"]), time.ctime(t["end"]),
-                t["end"] - t["start"]), file=failed_fi)
 
         print("</table></body></html>", file=fi)
-        print("</table></body></html>", file=failed_fi)
         fi.close()
-        failed_fi.close()
-        if any_failed_tests is False:
-            # all tests passed, then delete the failed_tests_index.html
-            os.remove("failed_tests_index.html")
-
         os.chdir(workdir)
         webbrowser.open("file://%s/tests_html/index.html" % workdir)
-
 
     def __package_results(self, workdir):
         os.chdir(workdir)
