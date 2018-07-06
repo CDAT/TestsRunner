@@ -359,7 +359,6 @@ class TestRunnerBase(object):
         workdir: top level project repo directory
         tests  : a space separated list of test cases
         """
-        print("xxx xxx xxx xxx xxx xxx RUNNING new TestRunnerBase xxx xxx xxx xxx")
         os.chdir(workdir)
         test_names = self.__get_tests(self.args.tests)
 
