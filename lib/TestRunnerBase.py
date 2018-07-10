@@ -330,12 +330,7 @@ class TestRunnerBase(object):
         fi.close()
         failed_fi.close()
         if any_failure is False:
-            # there is no failure
-            print("xxx xxx xxx there is NO failures")
             os.unlink("failed_index.html")
-        else:
-            print("xxx xxx xxx there is some failures xxx xxx")
-
         os.chdir(workdir)
         webbrowser.open("file://%s/tests_html/index.html" % workdir)
 
