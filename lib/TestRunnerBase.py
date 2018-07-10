@@ -317,14 +317,14 @@ class TestRunnerBase(object):
             print("<a href='index.html'>Back To Results List</a>", file=fe)
             print("</body></html>", file=fe)
             fe.close()
-            t = result["times"]
+            time_stamp = result["times"]
             print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                time.ctime(t["start"]), time.ctime(t["end"]),
-                t["end"] - t["start"]), file=fi)
+                time.ctime(time_stamp["start"]), time.ctime(time_stamp["end"]),
+                time_stamp["end"] - time_stamp["start"]), file=fi)
             if result["result"]:
                 print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                        time.ctime(t["start"]), time.ctime(t["end"]),
-                        t["end"] - t["start"]), file=failed_fi)
+                        time.ctime(time_stamp["start"]), time.ctime(time_stamp["end"]),
+                        time_stamp["end"] - time_stamp["start"]), file=failed_fi)
         print("</table></body></html>", file=fi)
         print("</table></body></html>", file=failed_fi)
         fi.close()
