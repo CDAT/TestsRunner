@@ -123,7 +123,7 @@ class TestRunnerBase(object):
         if ret_code != SUCCESS:
             return ret_code
         if self.verbosity > 1:
-            print("BRANCH WE ARE TRYING TO CHECKOUT is (%s)" % branch)
+            print("xxx BRANCH WE ARE TRYING TO CHECKOUT is (%s)" % branch)
         ret_code, cmd_output = self.__run_cmd("git checkout %s" % (branch))
         os.chdir(workdir)
         return(ret_code)
