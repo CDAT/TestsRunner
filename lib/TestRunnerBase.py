@@ -274,7 +274,6 @@ class TestRunnerBase(object):
             result = self.results[t]
             nm = t.split("/")[-1][:-3]
             print("<tr><td>%s</td>" % nm, end=' ', file=fi)
-            print("<tr><td>%s</td>" % nm, end=' ', file=failed_fi)
             fe = codecs.open("%s.html" % nm, "w", encoding="utf-8")
             print("<!DOCTYPE html>", file=fe)
             print("<html><head><title>%s</title>" % nm, file=fe)
@@ -287,6 +286,7 @@ class TestRunnerBase(object):
                 any_failure = True
                 print("<td><a href='%s.html'>Fail</a></td>" % nm,
                       end=' ', file=fi)
+                print("<tr><td>%s</td>" % nm, end=' ', file=failed_fi)
                 print("<td><a href='%s.html'>Fail</a></td>" % nm,
                       end=' ', file=failed_fi)
                 print("<script type='text/javascript'>%s</script></head><body>"
