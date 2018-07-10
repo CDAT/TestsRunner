@@ -321,7 +321,7 @@ class TestRunnerBase(object):
             print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
                 time.ctime(t["start"]), time.ctime(t["end"]),
                 t["end"] - t["start"]), file=fi)
-            if result["result"] != 0:
+            if result["result"]:
                 print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
                         time.ctime(t["start"]), time.ctime(t["end"]),
                         t["end"] - t["start"]), file=failed_fi)
