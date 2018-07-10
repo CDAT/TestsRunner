@@ -312,6 +312,11 @@ class TestRunnerBase(object):
                           file=fe)
                     print("<div><a href='index.html'>Back To" +
                           " Results List</a></div>", file=fe)
+                
+                    t = result["times"]
+                    print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
+                            time.ctime(t["start"]), time.ctime(t["end"]),
+                            t["end"] - t["start"]), file=failed_fi)
             print('<div id="output"><h1>Log</h1><pre>' +
                   '%s</pre></div>' % "\n".join(result["log"]), file=fe)
             print("<a href='index.html'>Back To Results List</a>", file=fe)
@@ -321,10 +326,6 @@ class TestRunnerBase(object):
             print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
                 time.ctime(t["start"]), time.ctime(t["end"]),
                 t["end"] - t["start"]), file=fi)
-            if result["result"]:
-                print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                        time.ctime(t["start"]), time.ctime(t["end"]),
-                        t["end"] - t["start"]), file=failed_fi)
         print("</table></body></html>", file=fi)
         print("</table></body></html>", file=failed_fi)
         fi.close()
