@@ -306,7 +306,7 @@ class TestRunnerBase(object):
                     print("<div><a href='index.html'>Back " +
                           "To Results List</a></div>", file=fe)
                     print("<div id='diff'><img src='" +
-                          "%s' alt='diff file'></div>" % self.abspath(diff,
+                          "%s' alt='diff file'></div>" % self.__abspath(diff,
                                                                       nm,
                                                                       "diff"),
                           file=fe)
@@ -318,9 +318,9 @@ class TestRunnerBase(object):
             print("</body></html>", file=fe)
             fe.close()
             t = result["times"]
+
             print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                    time.ctime(t["start"]), time.ctime(t["end"]), t["end"] - t["start"]), 
-                  file=fi)
+                    time.ctime(t["start"]), time.ctime(t["end"]), t["end"] - t["start"]), file=fi)
             if result["result"]:
                 print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
                         time.ctime(t["start"]), time.ctime(t["end"]), t["end"] - t["start"]), 
