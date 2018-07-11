@@ -217,7 +217,7 @@ class TestRunnerBase(object):
                             file2 = log[k].split()[2]
                         except Exception:
                             file2 = log[k].split()[1][:-1]+log[j].split()[0]
-                            print("++++++++++++++++++++++++++", file2)
+                            print("+++++++++++++++++++++++++", file2)
                 if log[j].find("Saving image diff") > -1:
                     diff = log[j].split()[-1]
                     # break
