@@ -297,19 +297,21 @@ class TestRunnerBase(object):
                 file1, file2, diff = self.__findDiffFiles(result["log"])
                 if file1 != "":
                     print('<div id="comparison"></div><script'
-                          ' type="text/javascript">' 
-                          ' ImageCompare.compare(' 
-                          'document.getElementById("comparison"),' 
+                          ' type="text/javascript">'
+                          ' ImageCompare.compare('
+                          'document.getElementById("comparison"),'
                           ' "%s", "%s"); </script>' % (
                               self.__abspath(file2, nm, "test"),
                               self.__abspath(file1, nm, "source")), file=fe)
-                    print("<div><a href='index.html'>Back To Results List</a></div>",
+                    print("<div><a href='index.html'>"
+                          "Back To Results List</a></div>",
                           file=fe)
-                    print("<div id='diff'><img src='%s' alt='diff file'></div>" % 
+                    print("<div id='diff'>"
+                          "<img src='%s' alt='diff file'></div>" %
                           self.__abspath(diff, nm, "diff"), file=fe)
-                    print("<div><a href='index.html'>Back To" 
+                    print("<div><a href='index.html'>Back To"
                           " Results List</a></div>", file=fe)
-            print('<div id="output"><h1>Log</h1><pre>' 
+            print('<div id="output"><h1>Log</h1><pre>'
                   '%s</pre></div>' % "\n".join(result["log"]), file=fe)
             print("<a href='index.html'>Back To Results List</a>", file=fe)
             print("</body></html>", file=fe)
