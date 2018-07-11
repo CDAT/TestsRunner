@@ -305,10 +305,10 @@ class TestRunnerBase(object):
                               self.__abspath(file1, nm, "source")), file=fe)
                     print("<div><a href='index.html'>Back " +
                           "To Results List</a></div>", file=fe)
-                    print("<div id='diff'><img src='" +
-                          "%s' alt='diff file'></div>" % self.__abspath(diff,
-                                                                        nm,
-                                                                        "diff"),
+                    print("<div id='diff'><img src='%s' " +
+                          "alt='diff file'></div>" % self.__abspath(diff,
+                                                                    nm,
+                                                                    "diff"),
                           file=fe)
                     print("<div><a href='index.html'>Back To" +
                           " Results List</a></div>", file=fe)
@@ -324,7 +324,7 @@ class TestRunnerBase(object):
                     time.ctime(start), time.ctime(end), end - start), file=fi)
             if result["result"]:
                 print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                        time.ctime(start), time.ctime(end), end - start), 
+                        time.ctime(start), time.ctime(end), end - start),
                       file=failed_fi)
         print("</table></body></html>", file=fi)
         print("</table></body></html>", file=failed_fi)
