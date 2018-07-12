@@ -223,17 +223,8 @@ class TestRunnerBase(object):
                     # break
         return file1, file2, diff
 
-    def __generate_html(self, workdir, image_difference=True):
-        os.chdir(workdir)
-        if not os.path.exists("tests_html"):
-            os.makedirs("tests_html")
-        os.chdir("tests_html")
-
-        if image_difference:
-            js = script_data()
-
-        fi = open("index.html", "w")
-        print("<!DOCTYPE html>", file=fi)
+    def __write_html_header(self, fh):
+        print("<!DOCTYPE html>", file=fh)
         html_str = '<html><head>' + \
             '<title>%s Test Results %s</title>' + \
             '<link rel="stylesheet" type="text/css"' + \
@@ -255,18 +246,33 @@ class TestRunnerBase(object):
             ' } );' + \
             '</script>' + \
             '</head>'
-        print(html_str % (self.test_suite_name, time.asctime()), file=fi)
+        print(html_str % (self.test_suite_name, time.asctime()), file=fh)
         print("<body><h1>%s Test results: %s</h1>" % (self.test_suite_name,
-                                                      time.asctime()), file=fi)
-        print("<table id='table_id' class='display'>", file=fi)
+                                                      time.asctime()), file=fh)
+        print("<table id='table_id' class='display'>", file=fh)
         print("<thead><tr><th>Test</th><th>Result</th><th>Start Time</th>"
-              "<th>End Time</th><th>Time</th></tr></thead>", file=fi)
+              "<th>End Time</th><th>Time</th></tr></thead>", file=fh)
         print("<tfoot><tr><th>Test</th><th>Result</th><th>Start Time</th>"
-              "<th>End Time</th><th>Time</th></tr></tfoot>", file=fi)
+              "<th>End Time</th><th>Time</th></tr></tfoot>", file=fh)
 
-        for t in sorted(self.results.keys()):
-            result = self.results[t]
-            nm = t.split("/")[-1][:-3]
+    def __generate_html(self, workdir, image_difference=True):
+        os.chdir(workdir)
+        if not os.path.exists("tests_html"):
+            os.makedirs("tests_html")
+        os.chdir("tests_html")
+
+        if image_difference:
+            js = script_data()
+
+        fi = open("index.html", "w")
+        failed_fi = open("failed_index.html", "w")
+        self.__write_html_header(fi)
+        self.__write_html_header(failed_fi)
+
+        any_failure = False
+        for ts in sorted(self.results.keys()):
+            result = self.results[ts]
+            nm = ts.split("/")[-1][:-3]
             print("<tr><td>%s</td>" % nm, end=' ', file=fi)
             fe = codecs.open("%s.html" % nm, "w", encoding="utf-8")
             print("<!DOCTYPE html>", file=fe)
@@ -277,8 +283,12 @@ class TestRunnerBase(object):
                 print("</head><body>", file=fe)
                 print("<a href='index.html'>Back To Results List</a>", file=fe)
             else:
+                any_failure = True
                 print("<td><a href='%s.html'>Fail</a></td>" % nm,
                       end=' ', file=fi)
+                print("<tr><td>%s</td>" % nm, end=' ', file=failed_fi)
+                print("<td><a href='%s.html'>Fail</a></td>" % nm,
+                      end=' ', file=failed_fi)
                 print("<script type='text/javascript'>%s</script></head><body>"
                       % js, file=fe)
                 print("<a href='index.html'>Back To Results List</a>", file=fe)
@@ -286,34 +296,41 @@ class TestRunnerBase(object):
                       file=fe)
                 file1, file2, diff = self.__findDiffFiles(result["log"])
                 if file1 != "":
-                    print('<div id="comparison"></div><script' +
-                          ' type="text/javascript">' +
-                          ' ImageCompare.compare(' +
-                          'document.getElementById("comparison"),' +
+                    print('<div id="comparison"></div><script'
+                          ' type="text/javascript">'
+                          ' ImageCompare.compare('
+                          'document.getElementById("comparison"),'
                           ' "%s", "%s"); </script>' % (
                               self.__abspath(file2, nm, "test"),
                               self.__abspath(file1, nm, "source")), file=fe)
-                    print("<div><a href='index.html'>Back " +
-                          "To Results List</a></div>", file=fe)
-                    print("<div id='diff'><img src='" +
-                          "%s' alt='diff file'></div>" % self.abspath(diff,
-                                                                      nm,
-                                                                      "diff"),
+                    print("<div><a href='index.html'>"
+                          "Back To Results List</a></div>",
                           file=fe)
-                    print("<div><a href='index.html'>Back To" +
+                    print("<div id='diff'>"
+                          "<img src='%s' alt='diff file'></div>" %
+                          self.__abspath(diff, nm, "diff"), file=fe)
+                    print("<div><a href='index.html'>Back To"
                           " Results List</a></div>", file=fe)
-            print('<div id="output"><h1>Log</h1><pre>' +
+            print('<div id="output"><h1>Log</h1><pre>'
                   '%s</pre></div>' % "\n".join(result["log"]), file=fe)
             print("<a href='index.html'>Back To Results List</a>", file=fe)
             print("</body></html>", file=fe)
             fe.close()
             t = result["times"]
+            end = t["end"]
+            start = t["start"]
             print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                time.ctime(t["start"]), time.ctime(t["end"]),
-                t["end"] - t["start"]), file=fi)
-
+                    time.ctime(start), time.ctime(end), end - start), file=fi)
+            if result["result"]:
+                print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
+                        time.ctime(start), time.ctime(end), end - start),
+                      file=failed_fi)
         print("</table></body></html>", file=fi)
+        print("</table></body></html>", file=failed_fi)
         fi.close()
+        failed_fi.close()
+        if any_failure is False:
+            os.unlink("failed_index.html")
         os.chdir(workdir)
         webbrowser.open("file://%s/tests_html/index.html" % workdir)
 
