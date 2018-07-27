@@ -136,13 +136,31 @@ class TestRunnerBase(object):
         """Place holder extend this if you want more options"""
         return []
 
+    def __get_coverage_packages_TO_BE_REMOVED(self):
+        pkgs = ["cdms2", "cdutil", "genutil", "wk", "pcmdi_metrics",
+                "vcs", "vcsaddons", "thermo", "dv3d"]
+        python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                            i=sys.version_info.minor)
+        coverage_opts = ""
+        path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+        for pkg in pkgs:
+            opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+            coverage_opts = "{curr} {new}".format(curr=coverage_opts,
+                                                  new=opt)
+        return coverage_opts.split()
+
     def __do_run_tests(self, test_names):
         ret_code = SUCCESS
-        p = multiprocessing.Pool(self.ncpus)
+        if self.args.coverage:
+            p = multiprocessing.Pool(1)
+        else:
+            p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
         if self.args.coverage:
-            opts += ["--with-coverage", "--cover-html", "--cover-xml"]
+            #coverage_opts = self.__get_coverage_packages()
+            opts += ["--with-coverage", "--cover-html"]
+            #opts += coverage_opts
         for att in self.args.attributes:
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)
