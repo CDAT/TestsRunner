@@ -144,14 +144,13 @@ class TestRunnerBase(object):
 
         python_ver = "python{a}.{i}".format(a=sys.version_info.major,
                                             i=sys.version_info.minor)
-        coverage_opts = []
+        coverage_opts = ""
         path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
         for pkg in coverage_info["include"]:
-            # opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-            # coverage_opts.append(opt)
-            coverage_opts.append("--cover-package")
-            coverage_opts.append(os.path.join(path, pkg))
-        return coverage_opts
+            opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+            coverage_opts = "{curr} {new}".format(curr=coverage_opts,
+                                                  new=opt)
+        return coverage_opts.split()
 
     def __do_run_tests(self, test_names):
         ret_code = SUCCESS
