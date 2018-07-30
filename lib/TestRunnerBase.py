@@ -147,8 +147,10 @@ class TestRunnerBase(object):
         coverage_opts = []
         path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
         for pkg in coverage_info["include"]:
-            opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-            coverage_opts.append(opt)
+            # opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+            # coverage_opts.append(opt)
+            coverage_opts.append("--cover-package")
+            coverage_opts.append(os.path.join(path, pkg))
         return coverage_opts
 
     def __do_run_tests(self, test_names):
