@@ -139,7 +139,7 @@ class TestRunnerBase(object):
         return []
 
     def __get_coverage_packages_opt(self):
-        with open('.coverage.cfg', 'r') as f:
+        with open('tests/coverage.json', 'r') as f:
             coverage_info = json.load(f)
 
         python_ver = "python{a}.{i}".format(a=sys.version_info.major,
