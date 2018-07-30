@@ -8,6 +8,8 @@ import codecs
 import time
 import webbrowser
 import cdp
+import json
+
 from .Util import run_command, download_sample_data_files
 from .Util import get_sampledata_path, run_nose
 from .image_compare import script_data
@@ -149,19 +151,6 @@ class TestRunnerBase(object):
             coverage_opts = coverage_opts.append(opt)
         return coverage_opts
 
-    def __get_coverage_packages_TO_BE_REMOVED(self):
-        pkgs = ["cdms2", "cdutil", "genutil", "wk", "pcmdi_metrics",
-                "vcs", "vcsaddons", "thermo", "dv3d"]
-        python_ver = "python{a}.{i}".format(a=sys.version_info.major,
-                                            i=sys.version_info.minor)
-        coverage_opts = ""
-        path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
-        for pkg in pkgs:
-            opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-            coverage_opts = "{curr} {new}".format(curr=coverage_opts,
-                                                  new=opt)
-        return coverage_opts.split()
-
     def __do_run_tests(self, test_names):
         ret_code = SUCCESS
         if self.args.coverage:
@@ -173,8 +162,8 @@ class TestRunnerBase(object):
         if self.args.coverage:
             coverage_opts = self.__get_coverage_packages_opt()
             opts += ["--with-coverage", "--cover-html"]
+            opts += coverage_opts
         for att in self.args.attributes:
-            opts += coverage_opts 
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)
         try:
