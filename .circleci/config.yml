@@ -49,7 +49,6 @@ aliases:
        RESULT=$(( $RESULT + $PY3_RESULT))
        exit $RESULT
 
-
   - &conda_upload
     name: conda_upload
     command: |
@@ -112,10 +111,9 @@ jobs:
           path: tests_png
           destination: tests_png
 
-
 workflows:
   version: 2
   testsrunner:
     jobs:
       - macos_testsrunner
-      #- linux_testsrunner
+      - linux_testsrunner
