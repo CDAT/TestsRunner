@@ -136,6 +136,19 @@ class TestRunnerBase(object):
         """Place holder extend this if you want more options"""
         return []
 
+    def __get_coverage_packages_opt(self):
+        with open('.coverage.cfg', 'r') as f:
+            coverage_info = json.load(f)
+
+        python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                            i=sys.version_info.minor)
+        coverage_opts = []
+        path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+        for pkg in coverage_info["include"]:
+            opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+            coverage_opts = coverage_opts.append(opt)
+        return coverage_opts
+
     def __get_coverage_packages_TO_BE_REMOVED(self):
         pkgs = ["cdms2", "cdutil", "genutil", "wk", "pcmdi_metrics",
                 "vcs", "vcsaddons", "thermo", "dv3d"]
@@ -158,10 +171,10 @@ class TestRunnerBase(object):
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
         if self.args.coverage:
-            # coverage_opts = self.__get_coverage_packages()
+            coverage_opts = self.__get_coverage_packages_opt()
             opts += ["--with-coverage", "--cover-html"]
-            # opts += coverage_opts
         for att in self.args.attributes:
+            opts += coverage_opts 
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)
         try:
