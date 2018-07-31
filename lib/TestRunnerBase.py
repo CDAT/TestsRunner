@@ -161,7 +161,7 @@ class TestRunnerBase(object):
 
         path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
         for pkg in coverage_info["include"]:
-            pkg_files = glob.glob(os.path.join(path, pkg))
+            pkg_files = glob.glob(os.path.join(path, pkg, "*"))
             cmd = "coverage report {path}".format(path=" ".join(pkg_files))
             self.__run_cmd(cmd)
 
