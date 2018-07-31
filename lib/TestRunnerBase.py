@@ -152,6 +152,19 @@ class TestRunnerBase(object):
                                                   new=opt)
         return coverage_opts.split()
 
+    def __collect_coverage(self):
+        with open('tests/coverage.json', 'r') as f:
+            coverage_info = json.load(f)
+
+        python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                            i=sys.version_info.minor)
+
+        path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+        for pkg in coverage_info["include"]:
+            pkg_files = os.path.join(path, pkg, '*')
+            cmd = "coverage report {path}".format(path=pkg_files)
+            self.__run_cmd(cmd)
+
     def __do_run_tests(self, test_names):
         ret_code = SUCCESS
         if self.args.coverage:
@@ -201,6 +214,10 @@ class TestRunnerBase(object):
         self.results = results
         if len(failed) > 0:
             ret_code = FAILURE
+
+        if self.args.coverage:
+            self.__collect_coverage()
+
         return ret_code
 
     def __abspath(self, path, name, prefix):
