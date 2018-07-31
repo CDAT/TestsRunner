@@ -164,6 +164,7 @@ class TestRunnerBase(object):
             pkg_files = glob.glob(os.path.join(path, pkg, "*"))
             cmd = "coverage report {path}".format(path=" ".join(pkg_files))
             self.__run_cmd(cmd)
+            print("----------------------------------------------------------")
 
     def __do_run_tests(self, test_names):
         ret_code = SUCCESS
