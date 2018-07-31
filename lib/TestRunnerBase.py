@@ -153,6 +153,7 @@ class TestRunnerBase(object):
         return coverage_opts.split()
 
     def __collect_coverage(self):
+        print("xxx __collect_coverage() xxx")
         with open('tests/coverage.json', 'r') as f:
             coverage_info = json.load(f)
 
