@@ -25,6 +25,7 @@ def run_command(command, join_stderr=True, verbosity=2):
     out = []
     while P.poll() is None:
         read = P.stdout.readline().rstrip()
+        print("xxx read: {read}".format(read=read))
         decoded_str = read.decode('utf-8')
         out.append(str(decoded_str))
         if verbosity > 1 and len(read) != 0:
