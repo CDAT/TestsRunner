@@ -153,7 +153,6 @@ class TestRunnerBase(object):
         return coverage_opts.split()
 
     def __collect_coverage(self):
-        print("xxx __collect_coverage() xxx")
         with open('tests/coverage.json', 'r') as f:
             coverage_info = json.load(f)
 
@@ -162,8 +161,8 @@ class TestRunnerBase(object):
 
         path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
         for pkg in coverage_info["include"]:
-            pkg_files = os.path.join(path, pkg, '*')
-            cmd = "coverage report {path}".format(path=pkg_files)
+            pkg_files = glob.glob(os.path.join(path, pkg))
+            cmd = "coverage report {path}".format(path=" ".join(pkg_files))
             self.__run_cmd(cmd)
 
     def __do_run_tests(self, test_names):
