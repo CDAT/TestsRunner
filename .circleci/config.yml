@@ -45,10 +45,9 @@ aliases:
        source activate py3
        python run_tests.py -H -v2 -n 2
        PY3_RESULT=$?
-       echo "**** py3 test result: "${PY3_RESULT}
+       echo "*** py3 test result: "${PY3_RESULT}
        RESULT=$(( $RESULT + $PY3_RESULT))
        exit $RESULT
-
 
   - &conda_upload
     name: conda_upload
@@ -66,7 +65,7 @@ aliases:
        export USER=cdat
        export VERSION=8.0
        export LABEL=nightly
-       python ./prep_for_build.py -l $VERSION 
+       python ./prep_for_build.py -l $VERSION
        conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=2.7
        conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=3.6
        anaconda -t $CONDA_UPLOAD_TOKEN upload -u $USER -l $LABEL $CONDA_BLD_PATH/$OS/$PKG_NAME-$VERSION.`date +%Y*`0.tar.bz2 --force
@@ -111,7 +110,6 @@ jobs:
       - store_artifacts:
           path: tests_png
           destination: tests_png
-
 
 workflows:
   version: 2

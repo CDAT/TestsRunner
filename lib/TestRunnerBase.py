@@ -8,6 +8,8 @@ import codecs
 import time
 import webbrowser
 import cdp
+import json
+
 from .Util import run_command, download_sample_data_files
 from .Util import get_sampledata_path, run_nose
 from .image_compare import script_data
@@ -136,13 +138,32 @@ class TestRunnerBase(object):
         """Place holder extend this if you want more options"""
         return []
 
+    def __get_coverage_packages_opt(self):
+        with open('tests/coverage.json', 'r') as f:
+            coverage_info = json.load(f)
+
+        python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                            i=sys.version_info.minor)
+        coverage_opts = ""
+        path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+        for pkg in coverage_info["include"]:
+            opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+            coverage_opts = "{curr} {new}".format(curr=coverage_opts,
+                                                  new=opt)
+        return coverage_opts.split()
+
     def __do_run_tests(self, test_names):
         ret_code = SUCCESS
-        p = multiprocessing.Pool(self.ncpus)
+        if self.args.coverage:
+            p = multiprocessing.Pool(1)
+        else:
+            p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
         if self.args.coverage:
-            opts += ["--with-coverage", "--cover-html", "--cover-xml"]
+            coverage_opts = self.__get_coverage_packages_opt()
+            opts += ["--with-coverage", "--cover-html"]
+            opts += coverage_opts
         for att in self.args.attributes:
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)
