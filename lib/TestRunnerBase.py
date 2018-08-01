@@ -74,7 +74,7 @@ class TestRunnerBase(object):
             download_sample_data_files(
                 test_data_files_info, get_sampledata_path())
 
-    def _get_tests(self, tests=None):
+    def _get_tests(self, workdir, tests=None):
         """
         get_tests() gets the list of test names to run.
         If <failed_only> is False, returns the set of the specified
@@ -87,7 +87,8 @@ class TestRunnerBase(object):
         """
         if tests is None or len(tests) == 0:
             # run all tests
-            test_names = glob.glob("tests/test_*py")
+            # test_names = glob.glob("tests/test_*py")
+            test_names = glob.glob(os.path.join(workdir, 'tests', '*.py')
         else:
             test_names = set(tests)
 
@@ -394,7 +395,7 @@ class TestRunnerBase(object):
         tests  : a space separated list of test cases
         """
         os.chdir(workdir)
-        test_names = self._get_tests(self.args.tests)
+        test_names = self._get_tests(workdir, self.args.tests)
 
         if self.args.checkout_baseline:
             ret_code = self._get_baseline(workdir)
