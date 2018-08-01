@@ -74,7 +74,7 @@ class TestRunnerBase(object):
             download_sample_data_files(
                 test_data_files_info, get_sampledata_path())
 
-    def __get_tests(self, tests=None):
+    def _get_tests(self, tests=None):
         """
         get_tests() gets the list of test names to run.
         If <failed_only> is False, returns the set of the specified
@@ -104,9 +104,9 @@ class TestRunnerBase(object):
 
         return test_names
 
-    def __get_baseline(self, workdir):
+    def _get_baseline(self, workdir):
         """
-        __get_baseline(self, workdir):
+        _get_baseline(self, workdir):
         <workdir> : should be repo dir of the test
         """
         os.chdir(workdir)
@@ -166,7 +166,7 @@ class TestRunnerBase(object):
             # set popen_bufsize to 1 because some coverage output is large.
             run_command(cmd, True, 2, 1)
 
-    def __do_run_tests(self, test_names):
+    def _do_run_tests(self, test_names):
         ret_code = SUCCESS
         if self.args.coverage:
             p = multiprocessing.Pool(1)
@@ -294,7 +294,7 @@ class TestRunnerBase(object):
         print("<tfoot><tr><th>Test</th><th>Result</th><th>Start Time</th>"
               "<th>End Time</th><th>Time</th></tr></tfoot>", file=fh)
 
-    def __generate_html(self, workdir, image_difference=True):
+    def _generate_html(self, workdir, image_difference=True):
         os.chdir(workdir)
         if not os.path.exists("tests_html"):
             os.makedirs("tests_html")
@@ -373,7 +373,7 @@ class TestRunnerBase(object):
         os.chdir(workdir)
         webbrowser.open("file://%s/tests_html/index.html" % workdir)
 
-    def __package_results(self, workdir):
+    def _package_results(self, workdir):
         os.chdir(workdir)
         import tarfile
         tnm = "results_%s_%s_%s.tar.bz2" % (
@@ -394,19 +394,19 @@ class TestRunnerBase(object):
         tests  : a space separated list of test cases
         """
         os.chdir(workdir)
-        test_names = self.__get_tests(self.args.tests)
+        test_names = self._get_tests(self.args.tests)
 
         if self.args.checkout_baseline:
-            ret_code = self.__get_baseline(workdir)
+            ret_code = self._get_baseline(workdir)
             if ret_code != SUCCESS:
                 return(ret_code)
 
-        ret_code = self.__do_run_tests(test_names)
+        ret_code = self._do_run_tests(test_names)
 
         if self.args.html or self.args.package:
-            self.__generate_html(workdir)
+            self._generate_html(workdir)
 
         if self.args.package:
-            self.__package_results(workdir)
+            self._package_results(workdir)
 
         return ret_code
