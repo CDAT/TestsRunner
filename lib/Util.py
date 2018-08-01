@@ -9,7 +9,7 @@ import requests
 SUCCESS = 0
 
 
-def run_command(command, join_stderr=True, verbosity=2):
+def run_command(command, join_stderr=True, verbosity=2, popen_bufsize=0):
 
     if isinstance(command, str):
         command = shlex.split(command)
@@ -21,11 +21,10 @@ def run_command(command, join_stderr=True, verbosity=2):
         stderr = subprocess.PIPE
 
     P = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=stderr,
-                         bufsize=1, cwd=os.getcwd())
+                         bufsize=popen_bufsize, cwd=os.getcwd())
     out = []
     while P.poll() is None:
         read = P.stdout.readline().rstrip()
-        print("xxx read: {read}".format(read=read))
         decoded_str = read.decode('utf-8')
         out.append(str(decoded_str))
         if verbosity > 1 and len(read) != 0:

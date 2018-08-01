@@ -163,8 +163,8 @@ class TestRunnerBase(object):
         for pkg in coverage_info["include"]:
             pkg_files = glob.glob(os.path.join(path, pkg, "*.py"))
             cmd = "coverage report {path}".format(path=" ".join(pkg_files))
-            self.__run_cmd(cmd)
-            print("----------------------------------------------------------")
+            # set popen_bufsize to 1 because some coverage output is large.
+            run_command(cmd, True, 2, 1)
 
     def __do_run_tests(self, test_names):
         ret_code = SUCCESS
