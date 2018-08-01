@@ -138,8 +138,8 @@ class TestRunnerBase(object):
         """Place holder extend this if you want more options"""
         return []
 
-    def __get_coverage_packages_opt(self):
-        with open('tests/coverage.json', 'r') as f:
+    def __get_coverage_packages_opt(self, workdir):
+        with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
             coverage_info = json.load(f)
 
         python_ver = "python{a}.{i}".format(a=sys.version_info.major,
@@ -152,8 +152,8 @@ class TestRunnerBase(object):
                                                   new=opt)
         return coverage_opts.split()
 
-    def __collect_coverage(self):
-        with open('tests/coverage.json', 'r') as f:
+    def __collect_coverage(self, workdir):
+        with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
             coverage_info = json.load(f)
 
         python_ver = "python{a}.{i}".format(a=sys.version_info.major,
@@ -166,7 +166,7 @@ class TestRunnerBase(object):
             # set popen_bufsize to 1 because some coverage output is large.
             run_command(cmd, True, 2, 1)
 
-    def _do_run_tests(self, test_names):
+    def _do_run_tests(self, workdir, test_names):
         ret_code = SUCCESS
         if self.args.coverage:
             p = multiprocessing.Pool(1)
@@ -175,7 +175,7 @@ class TestRunnerBase(object):
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
         if self.args.coverage:
-            coverage_opts = self.__get_coverage_packages_opt()
+            coverage_opts = self.__get_coverage_packages_opt(workdir)
             opts += ["--with-coverage", "--cover-html"]
             opts += coverage_opts
         for att in self.args.attributes:
@@ -217,7 +217,7 @@ class TestRunnerBase(object):
             ret_code = FAILURE
 
         if self.args.coverage:
-            self.__collect_coverage()
+            self.__collect_coverage(workdir)
 
         return ret_code
 
@@ -401,7 +401,7 @@ class TestRunnerBase(object):
             if ret_code != SUCCESS:
                 return(ret_code)
 
-        ret_code = self._do_run_tests(test_names)
+        ret_code = self._do_run_tests(workdir, test_names)
 
         if self.args.html or self.args.package:
             self._generate_html(workdir)
