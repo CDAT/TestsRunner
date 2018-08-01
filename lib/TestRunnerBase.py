@@ -88,7 +88,7 @@ class TestRunnerBase(object):
         if tests is None or len(tests) == 0:
             # run all tests
             # test_names = glob.glob("tests/test_*py")
-            test_names = glob.glob(os.path.join(workdir, 'tests', '*.py')
+            test_names = glob.glob(os.path.join(workdir, 'tests', '*.py'))
         else:
             test_names = set(tests)
 
