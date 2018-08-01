@@ -89,6 +89,7 @@ class TestRunnerBase(object):
             # run all tests
             # test_names = glob.glob("tests/test_*py")
             test_names = glob.glob("{w}/tests/test_*py".format(w=workdir))
+            print("xxx test_names: ", test_names)
         else:
             test_names = set(tests)
 
