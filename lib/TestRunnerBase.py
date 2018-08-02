@@ -84,7 +84,7 @@ class TestRunnerBase(object):
         the set of failed test names that is listed in <tests>
         """
         if tests is None or len(tests) == 0:
-            # run all tests
+            # get all test names
             test_names = glob.glob("{w}/tests/test_*py".format(w=workdir))
         else:
             test_names = set(tests)
