@@ -45,7 +45,7 @@ aliases:
        source activate py3
        python run_tests.py -H -v2 -n 2
        PY3_RESULT=$?
-       echo "*** py3 test result: "${PY3_RESULT}
+       echo "**** py3 test result: "${PY3_RESULT}
        RESULT=$(( $RESULT + $PY3_RESULT))
        exit $RESULT
 
