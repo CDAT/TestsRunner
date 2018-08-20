@@ -21,7 +21,7 @@ def run_command(command, join_stderr=True, verbosity=2, popen_bufsize=0):
         stderr = subprocess.PIPE
 
     P = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=stderr,
-                         popen_bufsize, cwd=os.getcwd())
+                         bufsize=popen_bufsize, cwd=os.getcwd())
     out = []
     while P.poll() is None:
         read = P.stdout.readline().rstrip()
