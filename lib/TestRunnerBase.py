@@ -158,7 +158,6 @@ class TestRunnerBase(object):
                                             i=sys.version_info.minor)
 
         path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
-        print("xxx DEBUG __collect_coverage(), path: {p}".format(p=path))
 
         for pkg in coverage_info["include"]:
             pkg_files = glob.glob(os.path.join(path, pkg, "*.py"))
