@@ -7,6 +7,7 @@ import multiprocessing
 import codecs
 import time
 import webbrowser
+import json
 import cdp
 from .Util import run_command, download_sample_data_files
 from .Util import get_sampledata_path, run_nose
@@ -72,7 +73,7 @@ class TestRunnerBase(object):
             download_sample_data_files(
                 test_data_files_info, get_sampledata_path())
 
-    def __get_tests(self, tests=None):
+    def _get_tests(self, workdir, tests=None):
         """
         get_tests() gets the list of test names to run.
         If <failed_only> is False, returns the set of the specified
@@ -84,8 +85,7 @@ class TestRunnerBase(object):
         the set of failed test names that is listed in <tests>
         """
         if tests is None or len(tests) == 0:
-            # run all tests
-            test_names = glob.glob("tests/test_*py")
+            test_names = glob.glob("{w}/tests/test_*py".format(w=workdir))
         else:
             test_names = set(tests)
 
@@ -102,9 +102,9 @@ class TestRunnerBase(object):
 
         return test_names
 
-    def __get_baseline(self, workdir):
+    def _get_baseline(self, workdir):
         """
-        __get_baseline(self, workdir):
+        _get_baseline(self, workdir):
         <workdir> : should be repo dir of the test
         """
         os.chdir(workdir)
@@ -123,7 +123,7 @@ class TestRunnerBase(object):
         if ret_code != SUCCESS:
             return ret_code
         if self.verbosity > 1:
-            print("...BRANCH WE ARE TRYING TO CHECKOUT is (%s)" % branch)
+            print("BRANCH WE ARE TRYING TO CHECKOUT is (%s)" % branch)
         ret_code, cmd_output = self.__run_cmd("git checkout %s" % (branch))
         os.chdir(workdir)
         return(ret_code)
@@ -136,20 +136,37 @@ class TestRunnerBase(object):
         """Place holder extend this if you want more options"""
         return []
 
-    def __get_coverage_packages(self):
-        pkgs = ["cdms2", "cdutil", "genutil", "wk", "pcmdi_metrics",
-                "vcs", "vcsaddons", "thermo", "dv3d"]
+    def __get_coverage_packages_opt(self, workdir):
+        with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
+            coverage_info = json.load(f)
+
         python_ver = "python{a}.{i}".format(a=sys.version_info.major,
                                             i=sys.version_info.minor)
         coverage_opts = ""
         path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
-        for pkg in pkgs:
+        for pkg in coverage_info["include"]:
             opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
             coverage_opts = "{curr} {new}".format(curr=coverage_opts,
                                                   new=opt)
         return coverage_opts.split()
 
-    def __do_run_tests(self, test_names):
+    def __collect_coverage(self, workdir):
+        with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
+            coverage_info = json.load(f)
+
+        python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                            i=sys.version_info.minor)
+
+        path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+        print("xxx DEBUG __collect_coverage(), path: {p}".format(p=path))
+
+        for pkg in coverage_info["include"]:
+            pkg_files = glob.glob(os.path.join(path, pkg, "*.py"))
+            cmd = "coverage report {path}".format(path=" ".join(pkg_files))
+            # set popen_bufsize to 1 because some coverage output is large.
+            run_command(cmd, True, 2, 1)
+
+    def _do_run_tests(self, workdir, test_names):
         ret_code = SUCCESS
         if self.args.coverage:
             p = multiprocessing.Pool(1)
@@ -158,14 +175,14 @@ class TestRunnerBase(object):
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
         if self.args.coverage:
-            coverage_opts = self.__get_coverage_packages()
-            opts += ["--with-coverage", "--cover-html"]
+            coverage_opts = self.__get_coverage_packages_opt(workdir)
+            opts += ["--with-coverage", "--cover-html", "--cover-xml"]
             opts += coverage_opts
         for att in self.args.attributes:
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)
         try:
-            outs = p.map_async(func, test_names).get(7200)
+            outs = p.map_async(func, test_names).get(3600)
         except KeyboardInterrupt:
             sys.exit(1)
         results = {}
@@ -198,6 +215,10 @@ class TestRunnerBase(object):
         self.results = results
         if len(failed) > 0:
             ret_code = FAILURE
+
+        if self.args.coverage:
+            self.__collect_coverage(workdir)
+
         return ret_code
 
     def __abspath(self, path, name, prefix):
@@ -273,7 +294,7 @@ class TestRunnerBase(object):
         print("<tfoot><tr><th>Test</th><th>Result</th><th>Start Time</th>"
               "<th>End Time</th><th>Time</th></tr></tfoot>", file=fh)
 
-    def __generate_html(self, workdir, image_difference=True):
+    def _generate_html(self, workdir, image_difference=True):
         os.chdir(workdir)
         if not os.path.exists("tests_html"):
             os.makedirs("tests_html")
@@ -352,7 +373,7 @@ class TestRunnerBase(object):
         os.chdir(workdir)
         webbrowser.open("file://%s/tests_html/index.html" % workdir)
 
-    def __package_results(self, workdir):
+    def _package_results(self, workdir):
         os.chdir(workdir)
         import tarfile
         tnm = "results_%s_%s_%s.tar.bz2" % (
@@ -373,19 +394,19 @@ class TestRunnerBase(object):
         tests  : a space separated list of test cases
         """
         os.chdir(workdir)
-        test_names = self.__get_tests(self.args.tests)
+        test_names = self._get_tests(workdir, self.args.tests)
 
         if self.args.checkout_baseline:
-            ret_code = self.__get_baseline(workdir)
+            ret_code = self._get_baseline(workdir)
             if ret_code != SUCCESS:
                 return(ret_code)
 
-        ret_code = self.__do_run_tests(test_names)
+        ret_code = self._do_run_tests(workdir, test_names)
 
         if self.args.html or self.args.package:
-            self.__generate_html(workdir)
+            self._generate_html(workdir)
 
         if self.args.package:
-            self.__package_results(workdir)
+            self._package_results(workdir)
 
         return ret_code
