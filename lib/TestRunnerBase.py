@@ -145,8 +145,6 @@ class TestRunnerBase(object):
             opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
             coverage_opts = "{curr} {new}".format(curr=coverage_opts,
                                                   new=opt)
-        coverage_opts = "{curr} {new}".format(curr=coverage_opts,
-                                              new="--cover-inclusive")
         return coverage_opts.split()
 
     def __collect_coverage(self, workdir):
