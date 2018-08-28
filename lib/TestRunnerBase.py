@@ -61,11 +61,8 @@ class TestRunnerBase(object):
 
         self.args = parser.get_parameter()
         self.test_suite_name = test_suite_name
-
         self.verbosity = self.args.verbosity
-
         self.ncpus = self.args.num_workers
-
         if get_sample_data is True:
             if test_data_files_info is None:
                 test_data_files_info = os.path.join(
