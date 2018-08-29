@@ -1,0 +1,10 @@
+{
+    "--stdout": {
+        "aliases": [
+            "-s"
+        ], 
+        "default": [], 
+        "help": "print stdout to console"
+    }
+}
+
