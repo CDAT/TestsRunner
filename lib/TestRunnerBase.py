@@ -60,6 +60,7 @@ class TestRunnerBase(object):
             parser.use(option)
 
         self.args = parser.get_parameter()
+        print("xxx xxx in init()...self.args.tests: {t}".format(t=self.args.tests))
         self.test_suite_name = test_suite_name
         self.verbosity = self.args.verbosity
         self.ncpus = self.args.num_workers
@@ -390,7 +391,12 @@ class TestRunnerBase(object):
         tests  : a space separated list of test cases
         """
         os.chdir(workdir)
-        test_names = self._get_tests(workdir, self.args.tests)
+        if tests is None:
+            test_names = self._get_tests(workdir, self.args.tests)
+        else:
+            test_names = [ tests ]
+        print("xxx xxx in run()...test_names: {t}".format(t=test_names))
+        print("xxx xxx in run()...self.args.tests: {t}".format(t=self.args.tests))
 
         if self.args.checkout_baseline:
             ret_code = self._get_baseline(workdir)

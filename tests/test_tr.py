@@ -24,14 +24,16 @@ class TestTestRunnerBase(unittest.TestCase):
     
     def testRun(self):
         workdir = os.path.join(os.path.dirname ( __file__), os.path.pardir)
-        print("xxxxxx workdir: {}".format(workdir))
         testsuite_name = "testsrunner"
         options_files = []
         options_files.insert(0, os.path.join(
                 sys.prefix, "share", "testsrunner", "test_options_file.json"))
-        
-        runner = TestRunnerBaseSubClass(testsuite_name, options_files=options_files)
-        print("xxxxxx calling runner.run() xxx")
+        options = [ "-s", "--with-coverage", "--cover-html", "--cover-xml", "--cover-package"]
+        runner = TestRunnerBaseSubClass(testsuite_name, options=options,
+                                        options_files=options_files)
         ret_code = runner.run(workdir, tests="tests/test_hello.py")
         self.assertEqual(ret_code, 0)
+
+
+# python run_tests.py -v2 -n 2 tests/test_tr.py
 
