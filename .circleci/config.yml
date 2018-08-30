@@ -88,8 +88,7 @@ aliases:
        fi
        RESULT=$?
        echo "*** $PY_VER test result: "${RESULT} 
-       # exit $RESULT
-       exit 1
+       exit $RESULT
 
   - &conda_upload
     name: conda_upload
