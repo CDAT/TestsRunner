@@ -29,7 +29,7 @@ aliases:
        conda config --set always_yes yes --set changeps1 no
        conda update -y -q conda
        conda config --set anaconda_upload no
-       if [ $PY_VERSION = "py2" ]
+       if [ $PY_VER = "py2" ]
        then
           conda create -q -n py2 -c cdat/label/nightly -c conda-forge -c cdat requests cdp flake8 nose python=2
        else
@@ -51,7 +51,7 @@ aliases:
     command: |
        export PATH=$WORKDIR/miniconda/bin:$PATH
        export UVCDAT_ANONYMOUS_LOG=False
-       source activate $PY_VERSION
+       source activate $PY_VER
        python setup.py install
 
 
@@ -79,15 +79,15 @@ aliases:
        export PATH=$WORKDIR/miniconda/bin:$PATH
        export CDAT_ANONYMOUS_LOG=False
        export CDAT_SETUP_PATH=${HOME}
-       source activate $PY_VERSION
-       if [ $PY_VERSION = 'py2' ]
+       source activate $PY_VER
+       if [ $PY_VER = 'py2' ]
        then
           python run_tests.py -H -v2 -n 2
        else
           python run_tests.py -H -v2 -n 2 $COVERAGE
        fi
        RESULT=$?
-       echo "*** $PY_VERSION test result: "${RESULT} 
+       echo "*** $PY_VER test result: "${RESULT} 
        exit $RESULT
 
 
@@ -121,30 +121,19 @@ aliases:
        source deactivate
 
 jobs:
-  macos_testsrunner:
+  macos_testsrunner_py2:
     macos:
       xcode: "9.2.0"
     environment:
       WORKDIR: "workspace/test_macos_testsrunner"
       OS: "osx-64"
+      PY_VER: "py2"
     steps:
       - checkout
-      - run: 
-           environment: 
-              PY_VERSION: "py2"
-           command: |
-              *setup_miniconda
-              *create_conda_env
-              *setup_testsrunner
-              *run_tests
-      - run: 
-           environment: 
-              PY_VERSION: "py3"
-           command: |
-              *setup_miniconda
-              *create_conda_env
-              *setup_testsrunner
-              *run_tests
+      - run: *setup_miniconda
+      - run: *create_conda_env
+      - run: *setup_testsrunner
+      - run: *run_tests
       - run: *conda_upload
       - store_artifacts:
           path: tests_html
@@ -153,32 +142,62 @@ jobs:
           path: tests_png
           destination: tests_png
 
-  linux_testsrunner:
+  macos_testsrunner_py3:
+    macos:
+      xcode: "9.2.0"
+    environment:
+      WORKDIR: "workspace/test_macos_testsrunner"
+      OS: "osx-64"
+      PY_VER: "py3"
+    steps:
+      - checkout
+      - run: *setup_miniconda
+      - run: *create_conda_env
+      - run: *setup_testsrunner
+      - run: *run_tests
+      - run: *conda_upload
+      - store_artifacts:
+          path: tests_html
+          destination: tests_html
+      - store_artifacts:
+          path: tests_png
+          destination: tests_png
+
+  linux_testsrunner_py2:
     machine:
       image: circleci/classic:latest
     environment:
       WORKDIR: "workspace/test_linux_testsrunner"
       OS: "linux-64"
+      PY_VER: "py2"
+    steps:
+      - checkout
+      - run: *setup_miniconda
+      - run: *create_conda_env
+      - run: *setup_testsrunner
+      - run: *run_tests
+      - run: *conda_upload
+      - store_artifacts:
+          path: tests_html
+          destination: tests_html
+      - store_artifacts:
+          path: tests_png
+          destination: tests_png
+
+  linux_testsrunner_py3:
+    machine:
+      image: circleci/classic:latest
+    environment:
+      WORKDIR: "workspace/test_linux_testsrunner"
+      OS: "linux-64"
+      PY_VER: "py3"
       COVERAGE: "-c tests/coverage.json"
     steps:
       - checkout
       - run: *setup_miniconda
-      - run: 
-           environment: 
-              PY_VERSION: "py2"
-           command: |
-              *setup_miniconda
-              *create_conda_env
-              *setup_testsrunner
-              *run_tests
-      - run: 
-           environment: 
-              PY_VERSION: "py3"
-           command: |
-              *setup_miniconda
-              *create_conda_env
-              *setup_testsrunner
-              *run_tests
+      - run: *create_conda_env
+      - run: *setup_testsrunner
+      - run: *run_tests
       - run: *run_coveralls
       - run: *conda_upload
       - store_artifacts:
@@ -210,10 +229,16 @@ jobs:
           path: tests_png
           destination: tests_png
 
-
 workflows:
   version: 2
   testsrunner:
     jobs:
-      - macos_testsrunner
-      - linux_testsrunner
+      - macos_testsrunner_py2
+      - macos_testsrunner_py3:
+           requires:
+              - macos_testsrunner_py2
+      - linux_testsrunner_py2
+      - linux_testsrunner_py3:
+           requires:
+              - linux_testsrunner_py2
+
