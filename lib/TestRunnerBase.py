@@ -24,10 +24,9 @@ class TestRunnerBase(object):
     class, and call the run() method. For example:
 
       runner = TestRunnerBase.TestRunnerBase(test_suite_name, valid_options,
-         args, get_sample_data)
+      args, get_sample_data)
       runner.run(workdir, args.tests)
     """
-
     def __init__(self, test_suite_name, options=[], options_files=[],
                  get_sample_data=False, test_data_files_info=None):
         """
@@ -60,7 +59,6 @@ class TestRunnerBase(object):
             parser.use(option)
 
         self.args = parser.get_parameter()
-        print("xxx xxx in init()...self.args.tests: {t}".format(t=self.args.tests))
         self.test_suite_name = test_suite_name
         self.verbosity = self.args.verbosity
         self.ncpus = self.args.num_workers
@@ -135,7 +133,7 @@ class TestRunnerBase(object):
         return []
 
     def __get_coverage_packages_opt(self, workdir):
-        with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
+        with open(os.path.join(workdir, self.args.coverage), 'r') as f:
             coverage_info = json.load(f)
 
         python_ver = "python{a}.{i}".format(a=sys.version_info.major,
@@ -394,10 +392,7 @@ class TestRunnerBase(object):
         if tests is None:
             test_names = self._get_tests(workdir, self.args.tests)
         else:
-            test_names = [ tests ]
-        print("xxx xxx in run()...test_names: {t}".format(t=test_names))
-        print("xxx xxx in run()...self.args.tests: {t}".format(t=self.args.tests))
-
+            test_names = [tests]
         if self.args.checkout_baseline:
             ret_code = self._get_baseline(workdir)
             if ret_code != SUCCESS:

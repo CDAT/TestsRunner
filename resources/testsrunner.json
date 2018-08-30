@@ -20,13 +20,12 @@
         "type": null
     }, 
     "--coverage": {
-        "action": "store_true", 
         "aliases": [
             "-c"
         ], 
-        "default": false, 
-        "help": "run nose test with coverage info", 
-        "type": null
+	"required": false,
+        "help": "run nose test with coverage for the packages specified in the json file", 
+        "type": "str"
     }, 
     "--diags": {
         "aliases": [

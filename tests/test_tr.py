@@ -1,8 +1,6 @@
 import unittest
 import os
 import sys
-import subprocess
-import shlex
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 lib_dir = os.path.join(this_dir, '..', 'lib')
@@ -19,7 +17,6 @@ class TestRunnerBaseSubClass(TestRunnerBase):
                                                      options, options_files,
                                                      get_sample_data, test_data_files_info)
 
-
 class TestTestRunnerBase(unittest.TestCase):
     
     def testRun(self):
@@ -31,9 +28,7 @@ class TestTestRunnerBase(unittest.TestCase):
         options = [ "-s", "--with-coverage", "--cover-html", "--cover-xml", "--cover-package"]
         runner = TestRunnerBaseSubClass(testsuite_name, options=options,
                                         options_files=options_files)
-        ret_code = runner.run(workdir, tests="tests/test_hello.py")
+        ret_code = runner.run(workdir, tests="tests/test_tr_flake8.py")
         self.assertEqual(ret_code, 0)
 
-
-# python run_tests.py -v2 -n 2 tests/test_tr.py
 
