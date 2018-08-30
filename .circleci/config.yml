@@ -129,13 +129,22 @@ jobs:
       OS: "osx-64"
     steps:
       - checkout
-      - run: *setup_miniconda
-      - run: PY_VERSION="py2" *create_conda_env
-      - run: PY_VERSION="py2" *setup_testsrunner
-      - run: PY_VERSION="py2" *run_tests
-      - run: PY_VERSION="py3" *create_conda_env
-      - run: PY_VERSION="py3" *setup_testsrunner
-      - run: PY_VERSION="py3" *run_tests
+      - run: 
+           environment: 
+              PY_VERSION: "py2"
+           command: |
+              *setup_miniconda
+              *create_conda_env
+              *setup_testsrunner
+              *run_tests
+      - run: 
+           environment: 
+              PY_VERSION: "py3"
+           command: |
+              *setup_miniconda
+              *create_conda_env
+              *setup_testsrunner
+              *run_tests
       - run: *conda_upload
       - store_artifacts:
           path: tests_html
@@ -154,12 +163,22 @@ jobs:
     steps:
       - checkout
       - run: *setup_miniconda
-      - run: PY_VERSION="py2" *create_conda_env
-      - run: PY_VERSION="py2" *setup_testsrunner
-      - run: PY_VERSION="py2" *run_tests
-      - run: PY_VERSION="py3" *create_conda_env
-      - run: PY_VERSION="py3" *setup_testsrunner
-      - run: PY_VERSION="py3" *run_tests
+      - run: 
+           environment: 
+              PY_VERSION: "py2"
+           command: |
+              *setup_miniconda
+              *create_conda_env
+              *setup_testsrunner
+              *run_tests
+      - run: 
+           environment: 
+              PY_VERSION: "py3"
+           command: |
+              *setup_miniconda
+              *create_conda_env
+              *setup_testsrunner
+              *run_tests
       - run: *run_coveralls
       - run: *conda_upload
       - store_artifacts:
