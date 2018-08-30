@@ -43,7 +43,7 @@ aliases:
        RESULT=$?
        echo "*** py2 test result: "${RESULT} 
        source activate py3
-       python run_tests.py -H -v2 -n 2 -c
+       python run_tests.py -H -v2 -n 2 -c tests/coverage.json
        PY3_RESULT=$?
        echo "**** py3 test result: "${PY3_RESULT}
        RESULT=$(( $RESULT + $PY3_RESULT))
