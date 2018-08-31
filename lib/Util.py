@@ -9,7 +9,8 @@ import requests
 SUCCESS = 0
 
 
-def run_command(command, join_stderr=True, verbosity=2, popen_bufsize=0):
+def run_command(command, join_stderr=True, verbosity=2,
+                popen_bufsize=0, env=None):
 
     if isinstance(command, str):
         command = shlex.split(command)
@@ -20,8 +21,12 @@ def run_command(command, join_stderr=True, verbosity=2, popen_bufsize=0):
     else:
         stderr = subprocess.PIPE
 
+    extra_keywords = {}
+    if env is not None:
+        extra_keywords["env"] = env
     P = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=stderr,
-                         bufsize=popen_bufsize, cwd=os.getcwd())
+                         bufsize=popen_bufsize, cwd=os.getcwd(),
+                         **extra_keywords)
     out = []
     while P.poll() is None:
         read = P.stdout.readline().rstrip()
@@ -114,8 +119,14 @@ def download_sample_data_files(files_md5, path=None):
 
 def run_nose(opts, verbosity, test_name):
     command = ["nosetests", ] + opts + ["-s", test_name]
+    if "--with-coverage" in opts:
+        test_env = os.environ.copy()
+        test_env["COVERAGE_FILE"] = os.path.join(
+            ".cvrg", os.path.basename(test_name))
+    else:
+        test_env = None
     start = time.time()
-    ret_code, out = run_command(command, True, verbosity)
+    ret_code, out = run_command(command, True, verbosity, env=test_env)
     end = time.time()
     return {test_name: {"result": ret_code, "log": out, "times": {
         "start": start, "end": end}}}

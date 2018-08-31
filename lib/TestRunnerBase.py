@@ -147,6 +147,10 @@ class TestRunnerBase(object):
         return coverage_opts.split()
 
     def __collect_coverage(self, workdir):
+        coverage_files = glob.glob(".cvrg/*")
+        run_command("coverage combine {}".format(" ".join(coverage_files)))
+        run_command("coverage xml")
+        run_command("coverage html")
         with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
             coverage_info = json.load(f)
 
@@ -163,16 +167,15 @@ class TestRunnerBase(object):
 
     def _do_run_tests(self, workdir, test_names):
         ret_code = SUCCESS
-        if self.args.coverage:
-            p = multiprocessing.Pool(1)
-        else:
-            p = multiprocessing.Pool(self.ncpus)
+        p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
         if self.args.coverage:
             coverage_opts = self.__get_coverage_packages_opt(workdir)
-            opts += ["--with-coverage", "--cover-html", "--cover-xml"]
+            opts += ["--with-coverage", ]
             opts += coverage_opts
+            if not os.path.exists(".cvrg"):
+                os.makedirs(".cvrg")
         for att in self.args.attributes:
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)
