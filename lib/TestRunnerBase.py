@@ -137,12 +137,12 @@ class TestRunnerBase(object):
         with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
 
-        python_ver = "python{a}.{i}".format(a=sys.version_info.major,
-                                            i=sys.version_info.minor)
         coverage_opts = ""
         if self.args.coverage_from_repo:
             path = os.getcwd()
         else:
+            python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                                i=sys.version_info.minor)
             path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
         for pkg in coverage_info["include"]:
             opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
@@ -158,14 +158,17 @@ class TestRunnerBase(object):
         with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
             coverage_info = json.load(f)
 
-        python_ver = "python{a}.{i}".format(a=sys.version_info.major,
-                                            i=sys.version_info.minor)
-
-        path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+        if self.args.coverage_from_repo:
+            path = os.getcwd()
+        else:
+            python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                                i=sys.version_info.minor)
+            path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
 
         for pkg in coverage_info["include"]:
             pkg_files = glob.glob(os.path.join(path, pkg, "*.py"))
             cmd = "coverage report {path}".format(path=" ".join(pkg_files))
+
             # set popen_bufsize to 1 because some coverage output is large.
             run_command(cmd, True, 2, 1)
 
