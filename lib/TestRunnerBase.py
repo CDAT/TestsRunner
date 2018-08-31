@@ -54,7 +54,8 @@ class TestRunnerBase(object):
         options += ["--coverage", "--verbosity", "--num_workers",
                     "--attributes", "--parameters", "--diags",
                     "--baseline", "--checkout-baseline",
-                    "--html", "--failed", "--package"]
+                    "--html", "--failed", "--package",
+                    "--coverage-from-repo"]
         for option in set(options):
             parser.use(option)
 
@@ -133,13 +134,16 @@ class TestRunnerBase(object):
         return []
 
     def __get_coverage_packages_opt(self, workdir):
-        with open(os.path.join(workdir, self.args.coverage), 'r') as f:
+        with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
 
         python_ver = "python{a}.{i}".format(a=sys.version_info.major,
                                             i=sys.version_info.minor)
         coverage_opts = ""
-        path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+        if self.args.coverage_from_repo:
+            path = os.getcwd()
+        else:
+            path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
         for pkg in coverage_info["include"]:
             opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
             coverage_opts = "{curr} {new}".format(curr=coverage_opts,
