@@ -14,16 +14,18 @@ aliases:
 
   - &create_conda_env
     name: create_conda_env
+    environment:
+       PKGS: "requests cdp flake8 nose"
+       CHANNELS: "-c cdat/label/nightly -c conda-forge -c cdat"
     command: |
        export PATH=$WORKDIR/miniconda/bin:$PATH
        conda config --set always_yes yes --set changeps1 no
        conda update -y -q conda
        conda config --set anaconda_upload no
-       if [ $PY_VER = "py2" ]
-       then
-          conda create -q -n py2 -c cdat/label/nightly -c conda-forge -c cdat requests cdp flake8 nose python=2
+       if [[ $PY_VER = "py2" ]]; then
+          conda create -q -n $PY_VER $CHANNELS $PKGS python=2
        else
-          conda create -q -n py3 -c cdat/label/nightly -c conda-forge -c cdat requests cdp flake8 nose python=3 coverage coveralls
+          conda create -q -n $PY_VER $CHANNELS $PKGS python=3 coverage coveralls
        fi
 
   - &setup_testsrunner
@@ -41,8 +43,7 @@ aliases:
        export CDAT_ANONYMOUS_LOG=False
        export CDAT_SETUP_PATH=${HOME}
        source activate $PY_VER
-       if [ $PY_VER = 'py2' ]
-       then
+       if [[ $PY_VER = 'py2' ]]; then
           python run_tests.py -H -v2 -n 2
        else
           python run_tests.py -H -v2 -n 2 $COVERAGE
@@ -54,7 +55,7 @@ aliases:
   - &conda_upload
     name: conda_upload
     command: |
-       if [[ $CIRCLE_BRANCH != 'master' ]]; then
+       if [[ $CIRCLE_BRANCH != 'add_coverage1' ]]; then
           exit 0
        fi
        export PATH=${HOME}/project/$WORKDIR/miniconda/bin:$PATH
@@ -66,9 +67,9 @@ aliases:
        export PKG_NAME=testsrunner
        export USER=cdat
        export VERSION=8.0
-       export LABEL=nightly
-       python ./prep_for_build.py -l $VERSION
-       if [ $PY_VER = 'py2' ] then
+       export LABEL=linatest
+       python ./prep_for_build.py -l $VERSION -b 'add_coverage1'
+       if [[ $PY_VER = 'py2' ]]; then
           conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=2.7
        else
           conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=3.6
@@ -79,7 +80,7 @@ aliases:
     name: run_coveralls
     command: |
        export PATH=$WORKDIR/miniconda/bin:$PATH
-       source activate py3
+       source activate $PY_VER
        coveralls
        source deactivate
 
