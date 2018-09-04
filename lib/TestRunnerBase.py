@@ -7,6 +7,7 @@ import multiprocessing
 import codecs
 import time
 import webbrowser
+import json
 import cdp
 from .Util import run_command, download_sample_data_files
 from .Util import get_sampledata_path, run_nose
@@ -23,10 +24,9 @@ class TestRunnerBase(object):
     class, and call the run() method. For example:
 
       runner = TestRunnerBase.TestRunnerBase(test_suite_name, valid_options,
-         args, get_sample_data)
+      args, get_sample_data)
       runner.run(workdir, args.tests)
     """
-
     def __init__(self, test_suite_name, options=[], options_files=[],
                  get_sample_data=False, test_data_files_info=None):
         """
@@ -54,17 +54,15 @@ class TestRunnerBase(object):
         options += ["--coverage", "--verbosity", "--num_workers",
                     "--attributes", "--parameters", "--diags",
                     "--baseline", "--checkout-baseline",
-                    "--html", "--failed", "--package"]
+                    "--html", "--failed", "--package",
+                    "--coverage-from-repo"]
         for option in set(options):
             parser.use(option)
 
         self.args = parser.get_parameter()
         self.test_suite_name = test_suite_name
-
         self.verbosity = self.args.verbosity
-
         self.ncpus = self.args.num_workers
-
         if get_sample_data is True:
             if test_data_files_info is None:
                 test_data_files_info = os.path.join(
@@ -84,7 +82,6 @@ class TestRunnerBase(object):
         the set of failed test names that is listed in <tests>
         """
         if tests is None or len(tests) == 0:
-            # get all test names
             test_names = glob.glob("{w}/tests/test_*py".format(w=workdir))
         else:
             test_names = set(tests)
@@ -104,7 +101,7 @@ class TestRunnerBase(object):
 
     def _get_baseline(self, workdir):
         """
-        __get_baseline(self, workdir):
+        _get_baseline(self, workdir):
         <workdir> : should be repo dir of the test
         """
         os.chdir(workdir)
@@ -136,13 +133,56 @@ class TestRunnerBase(object):
         """Place holder extend this if you want more options"""
         return []
 
+    def __get_coverage_packages_opt(self, workdir):
+        with open(self.args.coverage, 'r') as f:
+            coverage_info = json.load(f)
+
+        coverage_opts = ""
+        if self.args.coverage_from_repo:
+            path = os.getcwd()
+        else:
+            python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                                i=sys.version_info.minor)
+            path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+        for pkg in coverage_info["include"]:
+            opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+            coverage_opts = "{curr} {new}".format(curr=coverage_opts,
+                                                  new=opt)
+        return coverage_opts.split()
+
+    def __collect_coverage(self, workdir):
+        coverage_files = glob.glob(".cvrg/*")
+        run_command("coverage combine {}".format(" ".join(coverage_files)))
+        run_command("coverage xml")
+        run_command("coverage html")
+        with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
+            coverage_info = json.load(f)
+
+        if self.args.coverage_from_repo:
+            path = os.getcwd()
+        else:
+            python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                                i=sys.version_info.minor)
+            path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+
+        for pkg in coverage_info["include"]:
+            pkg_files = glob.glob(os.path.join(path, pkg, "*.py"))
+            cmd = "coverage report {path}".format(path=" ".join(pkg_files))
+
+            # set popen_bufsize to 1 because some coverage output is large.
+            run_command(cmd, True, 2, 1)
+
     def _do_run_tests(self, workdir, test_names):
         ret_code = SUCCESS
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
         if self.args.coverage:
-            opts += ["--with-coverage", "--cover-html", "--cover-xml"]
+            coverage_opts = self.__get_coverage_packages_opt(workdir)
+            opts += ["--with-coverage", ]
+            opts += coverage_opts
+            if not os.path.exists(".cvrg"):
+                os.makedirs(".cvrg")
         for att in self.args.attributes:
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)
@@ -180,6 +220,10 @@ class TestRunnerBase(object):
         self.results = results
         if len(failed) > 0:
             ret_code = FAILURE
+
+        if self.args.coverage:
+            self.__collect_coverage(workdir)
+
         return ret_code
 
     def __abspath(self, path, name, prefix):
@@ -355,8 +399,10 @@ class TestRunnerBase(object):
         tests  : a space separated list of test cases
         """
         os.chdir(workdir)
-        test_names = self._get_tests(workdir, self.args.tests)
-
+        if tests is None:
+            test_names = self._get_tests(workdir, self.args.tests)
+        else:
+            test_names = [tests]
         if self.args.checkout_baseline:
             ret_code = self._get_baseline(workdir)
             if ret_code != SUCCESS:

@@ -1,0 +1,33 @@
+{
+    "--stdout": {
+        "aliases": [
+            "-s"
+        ], 
+        "default": [], 
+        "help": "nosetests option - print stdout to console"
+    },
+    "--with-coverage": {
+        "action": "store_true",
+        "default": false, 
+        "help": "nosetests option - run with coverage",
+	"type": null
+    },
+    "--cover-html": {
+        "action": "store_true",
+        "default": false, 
+        "help": "nosetests option - generate coverage html",
+	"type": null
+    },
+    "--cover-xml": {
+        "action": "store_true",
+        "default": false, 
+        "help": "nosetests option - generate coverage xml",
+	"type": null
+    },
+    "--cover-package": {
+        "required": false,
+        "help": "nosetests option - package to generate coverage for",
+	"type": "str"
+    }
+}
+

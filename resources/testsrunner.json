@@ -20,12 +20,17 @@
         "type": null
     }, 
     "--coverage": {
-        "action": "store_true", 
         "aliases": [
             "-c"
         ], 
+	"required": false,
+        "help": "run nose test with coverage for the packages specified in the json file", 
+        "type": "str"
+    }, 
+    "--coverage-from-repo": {
+        "action": "store_true", 
         "default": false, 
-        "help": "run nose test with coverage info", 
+        "help": "run tests coverage on repo files", 
         "type": null
     }, 
     "--diags": {
