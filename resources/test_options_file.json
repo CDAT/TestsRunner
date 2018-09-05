@@ -28,6 +28,12 @@
         "required": false,
         "help": "nosetests option - package to generate coverage for",
 	"type": "str"
+    },
+    "--coverage": {
+        "required": false,
+	"default": "tests/coverage.json",
+        "help": "nosetests option - package to generate coverage for",
+	"type": "str"
     }
 }
 

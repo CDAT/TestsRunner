@@ -10,7 +10,8 @@
     "--baseline": {
         "aliases": [
             "-b"
-        ], 
+        ],
+	"default": "git://github.com/cdat/uvcdat-testdata",
         "help": "Git checkout a repo containing the baselines"
     }, 
     "--checkout-baseline": {

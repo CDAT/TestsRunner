@@ -167,8 +167,7 @@ class TestRunnerBase(object):
 
         for pkg in coverage_info["include"]:
             pkg_files = glob.glob(os.path.join(path, pkg, "*.py"))
-            cmd = "coverage report {path}".format(path=" ".join(pkg_files))
-
+            cmd = "coverage report -m {path}".format(path=" ".join(pkg_files))
             # set popen_bufsize to 1 because some coverage output is large.
             run_command(cmd, True, 2, 1)
 
@@ -376,7 +375,13 @@ class TestRunnerBase(object):
         if any_failure is False:
             os.unlink("failed_index.html")
         os.chdir(workdir)
-        webbrowser.open("file://%s/tests_html/index.html" % workdir)
+        index_file = "{}/tests_html/index.html".format(workdir)
+        if os.path.isfile(index_file):
+            ret_code = SUCCESS
+            webbrowser.open("file://%s" % index_file)
+        else:
+            ret_code = FAILURE
+        return ret_code
 
     def _package_results(self, workdir):
         os.chdir(workdir)
@@ -389,6 +394,12 @@ class TestRunnerBase(object):
         t.close()
         if self.verbosity > 0:
             print("Packaged Result Info in:", tnm)
+        tar_file = "{w}/{t}".format(w=workdir, t=tnm)
+        if os.path.isfile(tar_file):
+            ret_code = SUCCESS
+        else:
+            ret_code = FAILURE
+        return ret_code
 
     def run(self, workdir, tests=None):
         """
