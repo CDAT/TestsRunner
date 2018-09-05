@@ -11,7 +11,7 @@ from Util import run_command
 
 class TestRunnerBaseSubClass(TestRunnerBase):
     def __init__(self, test_suite_name, options=[], options_files=[],
-                 get_sample_data=True,
+                 get_sample_data=False,
                  test_data_files_info=None):
         super(TestRunnerBaseSubClass, self).__init__(test_suite_name,
                                                      options, options_files,
@@ -22,11 +22,14 @@ class TestTestRunnerBase(unittest.TestCase):
     def setUp(self):
         testsuite_name = "testsrunner"
         options_files = []
-        option_file = os.path.join(this_dir, '..', 'resources', 'test_options_file.json')
+        option_file = os.path.join(this_dir, '..', 'tests', 'test_options_file.json')
         options_files.insert(0, option_file)
         options = [ "-s", "--with-coverage", "--cover-html", "--cover-xml", "--cover-package", "--coverage" ]
+        test_data_files = os.path.join(this_dir, '..', 'tests', 'test_data_files.txt')
         self.runner = TestRunnerBaseSubClass(testsuite_name, options=options,
-                                             options_files=options_files)
+                                             options_files=options_files,
+                                             get_sample_data=True,
+                                             test_data_files_info=test_data_files)
 
     def testRun(self):
         workdir = os.path.join(os.path.dirname ( __file__), os.path.pardir)

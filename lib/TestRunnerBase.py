@@ -67,8 +67,8 @@ class TestRunnerBase(object):
             if test_data_files_info is None:
                 test_data_files_info = os.path.join(
                     "share", "test_data_files.txt")
-            download_sample_data_files(
-                test_data_files_info, get_sampledata_path())
+            download_sample_data_files(test_data_files_info,
+                                       get_sampledata_path())
 
     def _get_tests(self, workdir, tests=None):
         """
