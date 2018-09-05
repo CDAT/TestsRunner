@@ -26,6 +26,7 @@ class TestTestRunnerBase(unittest.TestCase):
         options_files.insert(0, option_file)
         options = [ "-s", "--with-coverage", "--cover-html", "--cover-xml", "--cover-package", "--coverage" ]
         test_data_files = os.path.join(this_dir, '..', 'tests', 'test_data_files.txt')
+
         self.runner = TestRunnerBaseSubClass(testsuite_name, options=options,
                                              options_files=options_files,
                                              get_sample_data=True,
