@@ -38,6 +38,7 @@ aliases:
 
   - &run_tests
     name: run_tests
+    no_output_timeout: 60m
     command: |
        export PATH=$WORKDIR/miniconda/bin:$PATH
        export CDAT_ANONYMOUS_LOG=False
