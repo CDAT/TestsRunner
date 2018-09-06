@@ -6,7 +6,7 @@ import os
 import multiprocessing
 import codecs
 import time
-import webbrowser
+# import webbrowser
 import json
 import cdp
 from .Util import run_command, download_sample_data_files
@@ -380,7 +380,7 @@ class TestRunnerBase(object):
         index_file = "{}/tests_html/index.html".format(workdir)
         if os.path.isfile(index_file):
             ret_code = SUCCESS
-            webbrowser.open("file://%s" % index_file)
+            # webbrowser.open("file://%s" % index_file)
         else:
             ret_code = FAILURE
         return ret_code
