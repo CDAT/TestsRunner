@@ -42,17 +42,17 @@ class TestTestRunnerBase(unittest.TestCase):
     #    ret_code = self.runner._get_baseline(workdir)
     #    self.assertEqual(ret_code, 0)
 
-    def testGenerateHtml(self):
-        workdir = os.path.join(os.path.dirname ( __file__), os.path.pardir)
-        self.runner.run(workdir, tests="tests/test_passing_test.py")
-        ret_code = self.runner._generate_html(workdir)
-        self.assertEqual(ret_code, 0)
-
-    # def testPackageResults(self):
+    # def testGenerateHtml(self):
     #    workdir = os.path.join(os.path.dirname ( __file__), os.path.pardir)
-    #    ret_code = self.runner.run(workdir, tests="tests/test_passing_test.py")
-    #    ret_code = self.runner._package_results(workdir)
+    #    self.runner.run(workdir, tests="tests/test_passing_test.py")
+    #    ret_code = self.runner._generate_html(workdir)
     #    self.assertEqual(ret_code, 0)
+
+    def testPackageResults(self):
+        workdir = os.path.join(os.path.dirname ( __file__), os.path.pardir)
+        ret_code = self.runner.run(workdir, tests="tests/test_passing_test.py")
+        ret_code = self.runner._package_results(workdir)
+        self.assertEqual(ret_code, 0)
 
 
 
