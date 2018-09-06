@@ -105,6 +105,7 @@ class TestRunnerBase(object):
         _get_baseline(self, workdir):
         <workdir> : should be repo dir of the test
         """
+        print("xxx get_baseline xxx")
         os.chdir(workdir)
         ret_code, cmd_output = self.__run_cmd(
             'git rev-parse --abbrev-ref HEAD')
