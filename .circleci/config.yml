@@ -184,6 +184,6 @@ workflows:
       #- linux_testsrunner_py3:
       #     requires:
       #        - linux_testsrunner_py2
-      linux_testsrunner_py3
+      - linux_testsrunner_py3
 
 
