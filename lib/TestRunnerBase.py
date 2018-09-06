@@ -299,7 +299,8 @@ class TestRunnerBase(object):
         print("<tfoot><tr><th>Test</th><th>Result</th><th>Start Time</th>"
               "<th>End Time</th><th>Time</th></tr></tfoot>", file=fh)
 
-    def _generate_html(self, workdir, image_difference=True, open_browser=True):
+    def _generate_html(self, workdir, image_difference=True,
+                       open_browser=True):
         print("xxx generate_html xxx")
         os.chdir(workdir)
         if not os.path.exists("tests_html"):
