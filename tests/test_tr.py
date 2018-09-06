@@ -48,17 +48,12 @@ class TestTestRunnerBase(unittest.TestCase):
         ret_code = self.runner._generate_html(workdir, open_browser=False)
         self.assertEqual(ret_code, 0)
 
-    # def testPackageResults(self):
-    #    workdir = os.path.join(os.path.dirname ( __file__), os.path.pardir)
-        # ret_code = self.runner.run(workdir, tests="tests/test_passing_test.py")
-    #    ret_code = self.runner.run(workdir, tests="tests/test_tr_flake8.py")
-    #    print("xxx xxx xxx returned from running test_tr_flake8.py")
-    #    path = os.getcwd()
-    #    print("xxx cwd: {}".format(path))
-    #    run_command("ls {}".format(path))
-    #    run_command("ls {}/..".format(path))
-    #    ret_code = self.runner._package_results(workdir)
-    #    self.assertEqual(ret_code, 0)
+    def testPackageResults(self):
+        workdir = os.path.join(os.path.dirname ( __file__), os.path.pardir)
+        ret_code = self.runner.run(workdir, tests="tests/test_passing_test.py")
+        ret_code = self.runner._generate_html(workdir, open_browser=False)
+        ret_code = self.runner._package_results(workdir)
+        self.assertEqual(ret_code, 0)
 
 
 
