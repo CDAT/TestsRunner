@@ -45,8 +45,7 @@ class TestTestRunnerBase(unittest.TestCase):
     def testGenerateHtml(self):
         workdir = os.path.join(os.path.dirname ( __file__), os.path.pardir)
         self.runner.run(workdir, tests="tests/test_passing_test.py")
-        # self.runner.run(workdir, tests="tests/test_tr_flake8.py")
-        ret_code = self.runner._generate_html(workdir)
+        ret_code = self.runner._generate_html(workdir, open_browser=False)
         self.assertEqual(ret_code, 0)
 
     # def testPackageResults(self):
