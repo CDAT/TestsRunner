@@ -386,6 +386,7 @@ class TestRunnerBase(object):
         return ret_code
 
     def _package_results(self, workdir):
+        print("xxx package_results xxx")
         os.chdir(workdir)
         import tarfile
         tnm = "results_%s_%s_%s.tar.bz2" % (
