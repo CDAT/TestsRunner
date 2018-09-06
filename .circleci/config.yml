@@ -176,12 +176,13 @@ workflows:
   version: 2
   testsrunner:
     jobs:
-      - macos_testsrunner_py2
-      - macos_testsrunner_py3:
-           requires:
-              - macos_testsrunner_py2
-      - linux_testsrunner_py2
-      - linux_testsrunner_py3:
-           requires:
-              - linux_testsrunner_py2
+      #- macos_testsrunner_py2
+      #- macos_testsrunner_py3:
+      #     requires:
+      #        - macos_testsrunner_py2
+      #- linux_testsrunner_py2
+      #- linux_testsrunner_py3:
+      #     requires:
+      #        - linux_testsrunner_py2
+      linux_nightly_py3
 
