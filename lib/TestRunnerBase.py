@@ -301,7 +301,6 @@ class TestRunnerBase(object):
 
     def _generate_html(self, workdir, image_difference=True,
                        open_browser=True):
-        print("xxx generate_html xxx")
         os.chdir(workdir)
         if not os.path.exists("tests_html"):
             os.makedirs("tests_html")
@@ -388,7 +387,6 @@ class TestRunnerBase(object):
         return ret_code
 
     def _package_results(self, workdir):
-        print("xxx package_results xxx")
         os.chdir(workdir)
         import tarfile
         tnm = "results_%s_%s_%s.tar.bz2" % (
