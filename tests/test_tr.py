@@ -53,6 +53,9 @@ class TestTestRunnerBase(unittest.TestCase):
         # ret_code = self.runner.run(workdir, tests="tests/test_passing_test.py")
         ret_code = self.runner.run(workdir, tests="tests/test_tr_flake8.py")
         print("xxx xxx xxx returned from running test_tr_flake8.py")
+        run_command("pwd")
+        run_command("ls -l")
+        run_command("ls -l ..")
         ret_code = self.runner._package_results(workdir)
         self.assertEqual(ret_code, 0)
 
