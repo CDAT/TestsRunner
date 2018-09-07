@@ -55,7 +55,7 @@ aliases:
   - &conda_upload
     name: conda_upload
     command: |
-       if [[ $CIRCLE_BRANCH != 'master' ]]; then
+       if [[ $CIRCLE_BRANCH != 'add_coverage1' ]]; then
           exit 0
        fi
        export PATH=${HOME}/project/$WORKDIR/miniconda/bin:$PATH
@@ -68,7 +68,7 @@ aliases:
        export USER=cdat
        export VERSION=8.0
        export LABEL=nightly
-       python ./prep_for_build.py -l $VERSION
+       python ./prep_for_build.py -l $VERSION -b 'add_coverage1'
        if [[ $PY_VER = 'py2' ]]; then
           conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=2.7
        else
