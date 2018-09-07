@@ -8,22 +8,24 @@ aliases:
   - &setup_miniconda
     name: setup_miniconda
     command: |
-      mkdir -p workspace
-      git clone -b validateNightly git@github.com:CDAT/cdat workspace/cdat
+      mkdir -p $WORKDIR
+      git clone -b validateNightly --depth 1 git@github.com:CDAT/cdat workspace/cdat
       python workspace/cdat/scripts/install_miniconda.py -w $WORKDIR -p 'py3'
 
   - &create_conda_env
     name: create_conda_env
+    environment:
+       PKGS: "requests cdp flake8 nose"
+       CHANNELS: "-c cdat/label/nightly -c conda-forge -c cdat"
     command: |
        export PATH=$WORKDIR/miniconda/bin:$PATH
        conda config --set always_yes yes --set changeps1 no
        conda update -y -q conda
        conda config --set anaconda_upload no
-       if [ $PY_VER = "py2" ]
-       then
-          conda create -q -n py2 -c cdat/label/nightly -c conda-forge -c cdat requests cdp flake8 nose python=2
+       if [[ $PY_VER = "py2" ]]; then
+          conda create -q -n $PY_VER $CHANNELS $PKGS python=2 coverage
        else
-          conda create -q -n py3 -c cdat/label/nightly -c conda-forge -c cdat requests cdp flake8 nose python=3 coverage coveralls
+          conda create -q -n $PY_VER $CHANNELS $PKGS python=3 coverage coveralls
        fi
 
   - &setup_testsrunner
@@ -41,8 +43,7 @@ aliases:
        export CDAT_ANONYMOUS_LOG=False
        export CDAT_SETUP_PATH=${HOME}
        source activate $PY_VER
-       if [ $PY_VER = 'py2' ]
-       then
+       if [[ $PY_VER = 'py2' ]]; then
           python run_tests.py -H -v2 -n 2
        else
           python run_tests.py -H -v2 -n 2 $COVERAGE
@@ -68,7 +69,7 @@ aliases:
        export VERSION=8.0
        export LABEL=nightly
        python ./prep_for_build.py -l $VERSION
-       if [ $PY_VER = 'py2' ] then
+       if [[ $PY_VER = 'py2' ]]; then
           conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=2.7
        else
           conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=3.6
@@ -79,7 +80,7 @@ aliases:
     name: run_coveralls
     command: |
        export PATH=$WORKDIR/miniconda/bin:$PATH
-       source activate py3
+       source activate $PY_VER
        coveralls
        source deactivate
 
@@ -130,7 +131,7 @@ jobs:
     machine:
       image: circleci/classic:latest
     environment:
-      WORKDIR: "workspace/test_linux_testsrunner"
+      WORKDIR: "workspace/test_linux_testsrunner_py2"
       OS: "linux-64"
       PY_VER: "py2"
     steps:
@@ -151,7 +152,8 @@ jobs:
     machine:
       image: circleci/classic:latest
     environment:
-      WORKDIR: "workspace/test_linux_testsrunner"
+      # WORKDIR: /home/circleci/project/workdir/linux_testsrunner_py3
+      WORKDIR: "workspace/test_linux_testsrunner_py3"
       OS: "linux-64"
       PY_VER: "py3"
       COVERAGE: "-c tests/coverage.json"
@@ -182,4 +184,5 @@ workflows:
       - linux_testsrunner_py3:
            requires:
               - linux_testsrunner_py2
+
 
