@@ -131,7 +131,7 @@ jobs:
     machine:
       image: circleci/classic:latest
     environment:
-      WORKDIR: "workspace/test_linux_testsrunner"
+      WORKDIR: "workspace/test_linux_testsrunner_py2"
       OS: "linux-64"
       PY_VER: "py2"
     steps:
@@ -152,7 +152,8 @@ jobs:
     machine:
       image: circleci/classic:latest
     environment:
-      WORKDIR: /home/circleci/project/workdir/linux_testsrunner_py3
+      # WORKDIR: /home/circleci/project/workdir/linux_testsrunner_py3
+      WORKDIR: "workspace/test_linux_testsrunner_py3"
       OS: "linux-64"
       PY_VER: "py3"
       COVERAGE: "-c tests/coverage.json"
