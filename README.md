@@ -1,5 +1,7 @@
 # testsrunner
 
+[![Coverage Status](https://coveralls.io/repos/github/CDAT/testsrunner/badge.svg?branch=master)](https://coveralls.io/github/CDAT/testsrunner?branch=master)
+
 The testsrunner module provides a modular implementation of argument parsing interfaces. It provides an easy way to define user friendly command line interfaces. It uses cdp for parsing arguments.
 
 # Example
