@@ -1,5 +1,8 @@
 # testsrunner
 
+[![CircleCI](https://circleci.com/gh/CDAT/TestsRunner/tree/master.svg?style=svg)](https://circleci.com/gh/CDAT/TestsRunner/tree/master)
+[![Coverage Status](https://coveralls.io/repos/github/CDAT/TestsRunner/badge.svg)](https://coveralls.io/github/CDAT/TestsRunner)
+
 The testsrunner module provides a modular implementation of argument parsing interfaces. It provides an easy way to define user friendly command line interfaces. It uses cdp for parsing arguments.
 
 # Example
