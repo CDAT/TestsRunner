@@ -135,7 +135,7 @@ class TestRunnerBase(object):
         return []
 
     def __get_coverage_packages_opt(self, workdir):
-        with open(self.args.coverage, 'r') as f:
+        with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
             coverage_info = json.load(f)
 
         coverage_opts = ""
