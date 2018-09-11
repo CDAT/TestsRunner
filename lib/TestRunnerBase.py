@@ -135,7 +135,7 @@ class TestRunnerBase(object):
         return []
 
     def __get_coverage_packages_opt(self, workdir):
-        with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
+        with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
 
         coverage_opts = ""
@@ -156,7 +156,7 @@ class TestRunnerBase(object):
         run_command("coverage combine {}".format(" ".join(coverage_files)))
         run_command("coverage xml")
         run_command("coverage html")
-        with open(os.path.join(workdir, 'tests', 'coverage.json'), 'r') as f:
+        with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
 
         if self.args.coverage_from_repo:
