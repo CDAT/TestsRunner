@@ -68,7 +68,7 @@ aliases:
        export USER=cdat
        export VERSION=8.0
        export LABEL=linatest
-       python ./prep_for_build.py -l $VERSION -b 'branch 10_git_checkout_error_if_no_branch'
+       python ./prep_for_build.py -l $VERSION -b '10_git_checkout_error_if_no_branch'
        if [[ $PY_VER = 'py2' ]]; then
           conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=2.7
        else
