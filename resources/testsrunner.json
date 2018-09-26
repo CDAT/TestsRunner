@@ -19,7 +19,13 @@
         "default": false, 
         "help": "checkout the baselines via git", 
         "type": null
-    }, 
+    },
+    "--baselines-fallback-on-master": {
+        "action": "store_true", 
+        "default": false, 
+        "help": "checkout the baselines via git falls back on master branch if branch is not present", 
+        "type": null
+    },  
     "--coverage": {
         "aliases": [
             "-c"

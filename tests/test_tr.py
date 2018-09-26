@@ -58,6 +58,17 @@ class TestTestRunnerBase(unittest.TestCase):
         ret_code = self.runner._package_results(workdir)
         self.assertEqual(ret_code, 0)
 
-
+    def testBaselines(self):
+        options = [ "-s", "--with-coverage", "--cover-html", "--cover-xml", "--cover-package", "--coverage", "--checkout-baseline" ]
+        workdir = os.path.join(os.path.dirname ( __file__), os.path.pardir)
+        self.runner2 = TestRunnerBaseSubClass(testsuite_name, options=options,
+                                              options_files=options_files,
+                                              get_sample_data=True,
+                                              test_data_files_info=test_data_files)
+        with self.assertRaises(Exception) as context:
+            ret_code = self.runner2._get_baseline(workdir)
+        self.runner2.baselines_fallback_on_master = True
+        ret_code = self.runner2._get_baseline(workdir)
+        self.assertEqual(ret_code, 0)
 
 

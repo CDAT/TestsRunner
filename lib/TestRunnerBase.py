@@ -123,6 +123,10 @@ class TestRunnerBase(object):
         if self.verbosity > 1:
             print("BRANCH WE ARE TRYING TO CHECKOUT is (%s)" % branch)
         ret_code, cmd_output = self.__run_cmd("git checkout %s" % (branch))
+        if ret_code != 0 and self.baselines_fallback_on_master:
+            print("Could not checkout branch `{}`, " +
+                  "try to fallback on `master`".format(branch))
+            ret_code, cmd_output = self.__run_cmd("git checkout master")
         os.chdir(workdir)
         return(ret_code)
 
