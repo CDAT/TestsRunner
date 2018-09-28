@@ -54,7 +54,8 @@ class TestRunnerBase(object):
                     "--attributes", "--parameters", "--diags",
                     "--baseline", "--checkout-baseline",
                     "--html", "--failed", "--package",
-                    "--coverage-from-repo", "--no-baselines-fallback-on-master"]
+                    "--coverage-from-repo",
+                    "--no-baselines-fallback-on-master"]
         for option in set(options):
             parser.use(option)
 

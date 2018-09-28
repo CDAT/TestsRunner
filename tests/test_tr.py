@@ -69,9 +69,10 @@ class TestTestRunnerBase(unittest.TestCase):
             shutil.rmtree(data_dir)
         branch = self.__get_git_branch(workdir)
         if branch != 'master':
+            self.runner.no_baselines_fallback_on_master = True
             with self.assertRaises(Exception) as context:
                 ret_code = self.runner._get_baseline(workdir)
-            self.runner.baselines_fallback_on_master = True
+            self.runner.no_baselines_fallback_on_master = False
 
         ret_code = self.runner._get_baseline(workdir)
         self.assertEqual(ret_code, 0)
