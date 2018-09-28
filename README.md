@@ -43,11 +43,11 @@ To run tests with coverage, and collect coverage information from packages / mod
 ### Run tests and checkout baseline from the same branch as your repository
 
 ```
-  $ run_tests.py -v 2 -H --checkout-baseline
+  $ run_tests.py -v 2 -H --checkout-baseline --no-baselines-fallback-on-master
 ```
 
-### Run tests and checkout baseline from 'master' branch
+### Run tests and checkout baseline from 'master' branch if there is no baseline with same branch.
 
 ```
-  $ run_tests.py -v 2 -H --checkout-baseline --baselines-fallback-on-master
+  $ run_tests.py -v 2 -H --checkout-baseline 
 ```

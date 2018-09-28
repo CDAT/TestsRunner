@@ -54,7 +54,7 @@ class TestRunnerBase(object):
                     "--attributes", "--parameters", "--diags",
                     "--baseline", "--checkout-baseline",
                     "--html", "--failed", "--package",
-                    "--coverage-from-repo", "--baselines-fallback-on-master"]
+                    "--coverage-from-repo", "--no-baselines-fallback-on-master"]
         for option in set(options):
             parser.use(option)
 
@@ -62,8 +62,8 @@ class TestRunnerBase(object):
         self.test_suite_name = test_suite_name
         self.verbosity = self.args.verbosity
         self.ncpus = self.args.num_workers
-        self.baselines_fallback_on_master = \
-            self.args.baselines_fallback_on_master
+        self.no_baselines_fallback_on_master = \
+            self.args.no_baselines_fallback_on_master
 
         if get_sample_data is True:
             if test_data_files_info is None:
@@ -125,14 +125,14 @@ class TestRunnerBase(object):
             print("BRANCH WE ARE TRYING TO CHECKOUT is (%s)" % branch)
         ret_code, cmd_output = self.__run_cmd("git checkout %s" % (branch))
         if ret_code != 0:
-            if self.baselines_fallback_on_master:
-                print("Could not checkout branch `{}`, " +
-                      "try to fallback on `master`".format(branch))
-                ret_code, cmd_output = self.__run_cmd("git checkout master")
-            else:
+            if self.no_baselines_fallback_on_master:
                 os.chdir(workdir)
                 msg = "baseline does not exist for branch {}".format(branch)
                 raise Exception(msg)
+            else:
+                print("Could not checkout branch `{}`, " +
+                      "fallback on `master`".format(branch))
+                ret_code, cmd_output = self.__run_cmd("git checkout master")
         os.chdir(workdir)
         return(ret_code)
 
