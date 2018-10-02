@@ -65,6 +65,7 @@ class TestRunnerBase(object):
         self.ncpus = self.args.num_workers
         self.no_baselines_fallback_on_master = \
             self.args.no_baselines_fallback_on_master
+        self.restore_from = None
 
         if get_sample_data is True:
             if test_data_files_info is None:
@@ -145,6 +146,12 @@ class TestRunnerBase(object):
         """Place holder extend this if you want more options"""
         return []
 
+    def __get_site_packages_path(self):
+        python_ver = "python{a}.{i}".format(a=sys.version_info.major,
+                                            i=sys.version_info.minor)
+        path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+        return path
+
     def __get_coverage_packages_opt(self, workdir):
         with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
@@ -162,6 +169,69 @@ class TestRunnerBase(object):
                                                   new=opt)
         return coverage_opts.split()
 
+    def __create_coverage_rc(self, workdir):
+        with open(self.args.coverage, 'r') as f:
+            coverage_info = json.load(f)
+
+        testsrunner_dir = os.path.join(sys.prefix, "share", "testsrunner")
+        template_file = os.path.join(testsrunner_dir, "coveragerc")
+        coverage_rc = os.path.join(workdir, ".coveragerc")
+        cmd = "cp {s} {d}".format(s=template_file, d=coverage_rc)
+        ret_code, cmd_output = self.__run_cmd(cmd)
+        if ret_code != SUCCESS:
+            return ret_code
+        try:
+            with open(coverage_rc, "a+") as f:
+                f.write("include =\n")
+                for a_subprocess in coverage_info["subprocess"]:
+                    subprocess_file = os.path.join(sys.prefix, a_subprocess)
+                    f.write("\t{the_file}\n".format(the_file=subprocess_file))
+        except IOError:
+            print("Could not create {}".format(coverage_rc))
+            return FAILURE
+
+        return SUCCESS, coverage_rc
+
+    def __create_coverage_sitecustomize(self, workdir, rc_file):
+
+        path = self.__get_site_packages_path()
+        sitecustomize_py = os.path.join(path, 'sitecustomize.py')
+        if os.path.exists(sitecustomize_py):
+            # need to save away and restore later.
+            current_time = time.localtime(time.time())
+            time_str = time.strftime(".%b.%d.%Y.%H:%M:%S", current_time)
+            backup = os.path.join(path, 'sitecustomize.py' + time_str)
+            cmd = "mv {source} {dest}".format(source=sitecustomize_py,
+                                              dest=backup)
+            self.restore_from = backup
+            self.restore_to = sitecustomize_py
+            ret_code, cmd_output = self.__run_cmd(cmd)
+            if ret_code != SUCCESS:
+                return ret_code
+        try:
+            with open(sitecustomize_py, "w+") as f:
+                f.write("import coverage\n")
+                f.write("import os\n")
+                f.write("os.environ[\"COVERAGE_PROCESS_START\"] = \"{}\"\n".format(rc_file))
+                f.write("coverage.process_startup()")
+        except IOError:
+            print("Could not create {}".format(sitecustomize_py))
+            return FAILURE
+        return SUCCESS
+
+    def __do_setup_if_coverage_subprocesses(self, workdir):
+        ret_code = SUCCESS
+        with open(self.args.coverage, 'r') as f:
+            coverage_info = json.load(f)
+
+        if "subprocess" in coverage_info:
+            ret_code, rc_file = self.__create_coverage_rc(workdir)
+            if ret_code != SUCCESS:
+                return ret_code
+            ret_code = self.__create_coverage_sitecustomize(workdir, rc_file)
+
+        return ret_code
+
     def __collect_coverage(self, workdir):
         coverage_files = glob.glob(".cvrg/*")
         run_command("coverage combine {}".format(" ".join(coverage_files)))
@@ -177,14 +247,30 @@ class TestRunnerBase(object):
                                                 i=sys.version_info.minor)
             path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
 
-        for pkg in coverage_info["include"]:
-            pkg_files = glob.glob(os.path.join(path, pkg, "*.py"))
-            cmd = "coverage report -m {path}".format(path=" ".join(pkg_files))
-            # set popen_bufsize to 1 because some coverage output is large.
-            run_command(cmd, True, 2, 1)
+        #for pkg in coverage_info["include"]:
+        #    pkg_files = glob.glob(os.path.join(path, pkg, "*.py"))
+        #    cmd = "coverage report -m {path}".format(path=" ".join(pkg_files))
+        #    # set popen_bufsize to 1 because some coverage output is large.
+        #    run_command(cmd, True, 2, 1)
+        cmd = "coverage report -m"
+        run_command(cmd, True, 2, 1)
+
+    def __restore(self):
+        # for coverage of subprocesses
+        if self.restore_from:
+            cmd = "mv {s} {d}".format(s=self.restore_from,
+                                      d=self.restore_to)
+            ret_code, cmd_output = self.__run_cmd(cmd)
+            if ret_code != SUCCESS:
+                return ret_code
+
+            self.restore_from = None
+        return SUCCESS
+
 
     def _do_run_tests(self, workdir, test_names):
         ret_code = SUCCESS
+
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
@@ -194,6 +280,10 @@ class TestRunnerBase(object):
             opts += coverage_opts
             if not os.path.exists(".cvrg"):
                 os.makedirs(".cvrg")
+
+            ret_code = self.__do_setup_if_coverage_subprocesses(workdir)
+            if ret_code != SUCCESS:
+                return ret_code
         for att in self.args.attributes:
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)

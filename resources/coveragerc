@@ -1,0 +1,7 @@
+[nosetests]
+verbosity = 2
+
+[coverage:run]
+branch = True
+concurrency = multiprocessing
+parallel = True
