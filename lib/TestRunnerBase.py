@@ -160,9 +160,7 @@ class TestRunnerBase(object):
         if self.args.coverage_from_repo:
             path = os.getcwd()
         else:
-            python_ver = "python{a}.{i}".format(a=sys.version_info.major,
-                                                i=sys.version_info.minor)
-            path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
+            path = self.__get_site_packages_path()
         for pkg in coverage_info["include"]:
             opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
             coverage_opts = "{curr} {new}".format(curr=coverage_opts,
@@ -170,6 +168,15 @@ class TestRunnerBase(object):
         return coverage_opts.split()
 
     def __create_coverage_rc(self, workdir):
+        '''
+        This method is called when we need to get coverage on subprocesses.
+        It creates a .coveragerc under <workdir>.
+        It copies the content of a template file (coveragerc) to .coveragerc,
+        and add any subprocesses to take coverage on under
+        the 'include' entry in .coveragerc.
+        The subprocesses are listed under 'subprocess' key in the file
+        specified to the --coverage option.
+        '''
         with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
 
@@ -193,7 +200,17 @@ class TestRunnerBase(object):
         return SUCCESS, coverage_rc
 
     def __create_coverage_sitecustomize(self, workdir, rc_file):
-
+        '''
+        This method is called when we need to get coverage on subprocesses.
+        It creates a 'sitecustomize.py' file under the python path which does:
+        - sets the environment variable COVERAGE_PROCESS_START to the
+          .coveragerc created by __create_coverage_rc() method,
+        - invokes coverage.process_startup().
+        
+        NOTE: coverage.py examines COVERAGE_PROCESS_START environment 
+        variable. If it is set, coverage.py will invoke sitecustomize.py
+        which forces python to run coverage.py on the subprocesses.
+        '''
         path = self.__get_site_packages_path()
         sitecustomize_py = os.path.join(path, 'sitecustomize.py')
         if os.path.exists(sitecustomize_py):
@@ -212,7 +229,9 @@ class TestRunnerBase(object):
             with open(sitecustomize_py, "w+") as f:
                 f.write("import coverage\n")
                 f.write("import os\n")
-                f.write("os.environ[\"COVERAGE_PROCESS_START\"] = \"{}\"\n".format(rc_file))
+                env = "COVERAGE_PROCESS_START"
+                f.write("os.environ[\"{e}\"] = \"{v}\"\n".format(e=env,
+                                                                 v=rc_file))
                 f.write("coverage.process_startup()")
         except IOError:
             print("Could not create {}".format(sitecustomize_py))
@@ -220,6 +239,12 @@ class TestRunnerBase(object):
         return SUCCESS
 
     def __do_setup_if_coverage_subprocesses(self, workdir):
+        '''
+        This method is called when coverage is to be done on 
+        subprocesses, which is indicated by the presence of 
+        "subprocess" entry in the file specified with
+        --coverage option.
+        '''
         ret_code = SUCCESS
         with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
@@ -237,21 +262,6 @@ class TestRunnerBase(object):
         run_command("coverage combine {}".format(" ".join(coverage_files)))
         run_command("coverage xml")
         run_command("coverage html")
-        with open(self.args.coverage, 'r') as f:
-            coverage_info = json.load(f)
-
-        if self.args.coverage_from_repo:
-            path = os.getcwd()
-        else:
-            python_ver = "python{a}.{i}".format(a=sys.version_info.major,
-                                                i=sys.version_info.minor)
-            path = os.path.join(sys.prefix, 'lib', python_ver, 'site-packages')
-
-        #for pkg in coverage_info["include"]:
-        #    pkg_files = glob.glob(os.path.join(path, pkg, "*.py"))
-        #    cmd = "coverage report -m {path}".format(path=" ".join(pkg_files))
-        #    # set popen_bufsize to 1 because some coverage output is large.
-        #    run_command(cmd, True, 2, 1)
         cmd = "coverage report -m"
         run_command(cmd, True, 2, 1)
 
@@ -263,10 +273,9 @@ class TestRunnerBase(object):
             ret_code, cmd_output = self.__run_cmd(cmd)
             if ret_code != SUCCESS:
                 return ret_code
-
             self.restore_from = None
-        return SUCCESS
 
+        return SUCCESS
 
     def _do_run_tests(self, workdir, test_names):
         ret_code = SUCCESS
@@ -324,7 +333,7 @@ class TestRunnerBase(object):
 
         if self.args.coverage:
             self.__collect_coverage(workdir)
-
+            self.__restore()
         return ret_code
 
     def __abspath(self, path, name, prefix):

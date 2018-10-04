@@ -39,6 +39,14 @@ To run tests with coverage, and collect coverage information from packages / mod
 ```
   $ run_tests.py -v 2 -H -c coverage.json --coverage-from-repo
 ```
+If a test launches subprocesses, and coverage is to be collected on the subprocesses, then coverage.json file should list the subprocesses. Example:
+```
+$ cat coverage.json
+{
+   "include": ["testsrunner"],
+   "subprocess": ["bin/print_something.py"]
+}
+```
 
 ### Run tests and checkout baseline from the same branch as your repository
 
@@ -51,3 +59,4 @@ To run tests with coverage, and collect coverage information from packages / mod
 ```
   $ run_tests.py -v 2 -H --checkout-baseline 
 ```
+

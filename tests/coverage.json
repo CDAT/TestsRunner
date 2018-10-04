@@ -1,3 +1,4 @@
 {
-   "include": ["testsrunner"]
+   "include": ["testsrunner"],
+   "subprocess": ["bin/print_something.py"]
 }

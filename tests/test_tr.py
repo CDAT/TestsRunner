@@ -2,6 +2,7 @@ import unittest
 import os
 import sys
 import shutil
+import subprocess
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 lib_dir = os.path.join(this_dir, '..', 'lib')
@@ -77,4 +78,7 @@ class TestTestRunnerBase(unittest.TestCase):
         ret_code = self.runner._get_baseline(workdir)
         self.assertEqual(ret_code, 0)
 
-
+    def testSubprocess(self):
+        print("xxx xxx testSubprocess xxx")
+        subprocess.call(["print_something.py"])
+        self.assertEqual(0, 0)
