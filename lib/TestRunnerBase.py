@@ -206,8 +206,7 @@ class TestRunnerBase(object):
         - sets the environment variable COVERAGE_PROCESS_START to the
           .coveragerc created by __create_coverage_rc() method,
         - invokes coverage.process_startup().
-        
-        NOTE: coverage.py examines COVERAGE_PROCESS_START environment 
+        NOTE: coverage.py examines COVERAGE_PROCESS_START environment
         variable. If it is set, coverage.py will invoke sitecustomize.py
         which forces python to run coverage.py on the subprocesses.
         '''
@@ -240,8 +239,8 @@ class TestRunnerBase(object):
 
     def __do_setup_if_coverage_subprocesses(self, workdir):
         '''
-        This method is called when coverage is to be done on 
-        subprocesses, which is indicated by the presence of 
+        This method is called when coverage is to be done on
+        subprocesses, which is indicated by the presence of
         "subprocess" entry in the file specified with
         --coverage option.
         '''

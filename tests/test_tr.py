@@ -79,6 +79,5 @@ class TestTestRunnerBase(unittest.TestCase):
         self.assertEqual(ret_code, 0)
 
     def testSubprocess(self):
-        print("xxx xxx testSubprocess xxx")
         subprocess.call(["print_something.py"])
         self.assertEqual(0, 0)
