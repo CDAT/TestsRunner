@@ -1,0 +1,42 @@
+{% set name = "testsrunner" %}
+
+package:
+  name: {{ name|lower }}
+  version: @VERSION@
+
+source:
+    git_rev: @UVCDAT_BRANCH@
+    git_url: git://github.com/cdat/testsrunner.git
+
+build:
+  number: 0
+  skip: True  # [win]
+  script: python setup.py install
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+    - requests
+    - jinja2
+    - cdp
+    - nose
+    - flake8
+
+test:
+  imports:
+    - testsrunner
+
+about:
+  home:  http://github.com/cdat/testsrunner
+  license: BSD 3-Clause
+  summary: 'Generic Test Suite Runner'
+  description: A set of tools to run nose-based test suites and generate reports
+  license: BSD
+  license_file: bsd-3-clause.txt
+
+extra:
+  recipe-maintainers:
+    - doutriaux1
