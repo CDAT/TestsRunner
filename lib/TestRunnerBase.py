@@ -12,6 +12,9 @@ import cdp
 from .Util import run_command, download_sample_data_files
 from .Util import get_sampledata_path, run_nose
 from .image_compare import script_data
+import tempfile
+from subprocess import Popen, PIPE
+import shlex
 SUCCESS = 0
 FAILURE = 1
 
@@ -27,6 +30,16 @@ class TestRunnerBase(object):
       args, get_sample_data)
       runner.run(workdir, args.tests)
     """
+    def _get_module_path(self, name):
+        f = tempfile.NamedTemporaryFile(mode="w")
+        print("from __future__ import print_function\nimport imp\nimport {pkg}\nprint(imp.reload({pkg}).__path__[0])".format(pkg=name), file=f)
+        f.file.flush()
+        p = Popen(shlex.split("python {}".format(f.name)), stdout=PIPE, stderr=PIPE, cwd=tempfile.gettempdir())
+        o,e = p.communicate()
+        pkg = o.decode("utf-8").strip()
+        return pkg
+
+
     def __init__(self, test_suite_name, options=[], options_files=[],
                  get_sample_data=False, test_data_files_info=None):
         """
@@ -157,14 +170,17 @@ class TestRunnerBase(object):
             coverage_info = json.load(f)
 
         coverage_opts = ""
-        if self.args.coverage_from_repo:
-            path = os.getcwd()
-        else:
-            path = self.__get_site_packages_path()
+        self.egg_paths = {}
         for pkg in coverage_info["include"]:
+            path = self._get_module_path(pkg)
+            self.egg_paths[pkg] = path
             opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-            coverage_opts = "{curr} {new}".format(curr=coverage_opts,
-                                                  new=opt)
+            coverage_opts += " {new}".format(new=opt)
+            if self.args.coverage_from_repo:
+                path = os.path.join(os.getcwd())
+                opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+                coverage_opts += " {new}".format(new=opt)
+        #return []
         return coverage_opts.split()
 
     def __create_coverage_rc(self, workdir):
@@ -189,10 +205,14 @@ class TestRunnerBase(object):
             return ret_code
         try:
             with open(coverage_rc, "a+") as f:
-                f.write("include =\n")
-                for a_subprocess in coverage_info["subprocess"]:
-                    subprocess_file = os.path.join(sys.prefix, a_subprocess)
-                    f.write("\t{the_file}\n".format(the_file=subprocess_file))
+                f.write("include =\n\t{}/*.py\n".format(self._get_module_path("DV3D")))
+                if "subprocess" in coverage_info:
+                    for a_subprocess in coverage_info["subprocess"]:
+                        subprocess_file = os.path.join(sys.prefix, a_subprocess)
+                        f.write("\t{the_file}\n".format(the_file=subprocess_file))
+                if "scripts" in coverage_info:
+                    for a_script in coverage_info["scripts"]:
+                        f.write("\t{the_script}\n".format(the_script=a_script))
         except IOError:
             print("Could not create {}".format(coverage_rc))
             return FAILURE
@@ -211,21 +231,21 @@ class TestRunnerBase(object):
         which forces python to run coverage.py on the subprocesses.
         '''
         path = self.__get_site_packages_path()
-        sitecustomize_py = os.path.join(path, 'sitecustomize.py')
-        if os.path.exists(sitecustomize_py):
+        self.sitecustomize_py = os.path.join(path, 'sitecustomize.py')
+        if os.path.exists(self.sitecustomize_py):
             # need to save away and restore later.
             current_time = time.localtime(time.time())
             time_str = time.strftime(".%b.%d.%Y.%H:%M:%S", current_time)
             backup = os.path.join(path, 'sitecustomize.py' + time_str)
-            cmd = "mv {source} {dest}".format(source=sitecustomize_py,
+            cmd = "mv {source} {dest}".format(source=self.sitecustomize_py,
                                               dest=backup)
             self.restore_from = backup
-            self.restore_to = sitecustomize_py
+            self.restore_to = self.sitecustomize_py
             ret_code, cmd_output = self.__run_cmd(cmd)
             if ret_code != SUCCESS:
                 return ret_code
         try:
-            with open(sitecustomize_py, "w+") as f:
+            with open(self.sitecustomize_py, "w+") as f:
                 f.write("import coverage\n")
                 f.write("import os\n")
                 env = "COVERAGE_PROCESS_START"
@@ -233,7 +253,7 @@ class TestRunnerBase(object):
                                                                  v=rc_file))
                 f.write("coverage.process_startup()")
         except IOError:
-            print("Could not create {}".format(sitecustomize_py))
+            print("Could not create {}".format(self.sitecustomize_py))
             return FAILURE
         return SUCCESS
 
@@ -248,7 +268,8 @@ class TestRunnerBase(object):
         with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
 
-        if "subprocess" in coverage_info:
+        #if "subprocess" in coverage_info or "scripts" in coverage_info:
+        if 1:
             ret_code, rc_file = self.__create_coverage_rc(workdir)
             if ret_code != SUCCESS:
                 return ret_code
@@ -258,6 +279,26 @@ class TestRunnerBase(object):
 
     def __collect_coverage(self, workdir):
         coverage_files = glob.glob(".cvrg/*")
+        coverage_files += glob.glob(".cvrg.*")
+        if os.path.exists(".coveragerc"):
+            with open(".coveragerc") as f:
+                lines = f.readlines()
+            with open(".coveragerc", "w") as f:
+                for l in lines:
+                    if "data_file" not in l:
+                        print(l, file=f)
+            
+        print("COV FILES:", coverage_files)
+        # replace moduyle path with repo path
+        for filename in coverage_files:
+            with open(filename) as f:
+                content = f.read()
+            for pkg in self.egg_paths:
+                path = self.egg_paths[pkg]
+                if path.strip() != "":
+                    content = content.replace(path,os.path.join(os.getcwd(),pkg))
+            with open(filename, "w") as f:
+                f.write(content)
         run_command("coverage combine {}".format(" ".join(coverage_files)))
         run_command("coverage xml")
         run_command("coverage html")
@@ -273,6 +314,9 @@ class TestRunnerBase(object):
             if ret_code != SUCCESS:
                 return ret_code
             self.restore_from = None
+        else:
+            if os.path.exists(self.sitecustomize_py):
+                os.remove(self.sitecustomize_py)
 
         return SUCCESS
 
