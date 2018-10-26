@@ -32,13 +32,15 @@ class TestRunnerBase(object):
     """
     def _get_module_path(self, name):
         f = tempfile.NamedTemporaryFile(mode="w")
-        print("from __future__ import print_function\nimport imp\nimport {pkg}\nprint(imp.reload({pkg}).__path__[0])".format(pkg=name), file=f)
+        print("from __future__ import print_function\nimport imp\n"
+              "import {pkg}\nprint(imp.reload({pkg}).__path__[0])".format(
+                  pkg=name), file=f)
         f.file.flush()
-        p = Popen(shlex.split("python {}".format(f.name)), stdout=PIPE, stderr=PIPE, cwd=tempfile.gettempdir())
-        o,e = p.communicate()
+        p = Popen(shlex.split("python {}".format(f.name)), stdout=PIPE,
+                  stderr=PIPE, cwd=tempfile.gettempdir())
+        o, e = p.communicate()
         pkg = o.decode("utf-8").strip()
         return pkg
-
 
     def __init__(self, test_suite_name, options=[], options_files=[],
                  get_sample_data=False, test_data_files_info=None):
@@ -180,7 +182,6 @@ class TestRunnerBase(object):
                 path = os.path.join(os.getcwd())
                 opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
                 coverage_opts += " {new}".format(new=opt)
-        #return []
         return coverage_opts.split()
 
     def __create_coverage_rc(self, workdir):
@@ -205,11 +206,14 @@ class TestRunnerBase(object):
             return ret_code
         try:
             with open(coverage_rc, "a+") as f:
-                f.write("include =\n\t{}/*.py\n".format(self._get_module_path("DV3D")))
+                f.write("include =\n\t{}/*.py\n".format(
+                    self._get_module_path("DV3D")))
                 if "subprocess" in coverage_info:
                     for a_subprocess in coverage_info["subprocess"]:
-                        subprocess_file = os.path.join(sys.prefix, a_subprocess)
-                        f.write("\t{the_file}\n".format(the_file=subprocess_file))
+                        subprocess_file = os.path.join(sys.prefix,
+                                                       a_subprocess)
+                        f.write("\t{the_file}\n".format(
+                            the_file=subprocess_file))
                 if "scripts" in coverage_info:
                     for a_script in coverage_info["scripts"]:
                         f.write("\t{the_script}\n".format(the_script=a_script))
@@ -268,8 +272,7 @@ class TestRunnerBase(object):
         with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
 
-        #if "subprocess" in coverage_info or "scripts" in coverage_info:
-        if 1:
+        if "subprocess" in coverage_info or "scripts" in coverage_info:
             ret_code, rc_file = self.__create_coverage_rc(workdir)
             if ret_code != SUCCESS:
                 return ret_code
@@ -287,7 +290,6 @@ class TestRunnerBase(object):
                 for l in lines:
                     if "data_file" not in l:
                         print(l, file=f)
-            
         print("COV FILES:", coverage_files)
         # replace moduyle path with repo path
         for filename in coverage_files:
@@ -296,7 +298,9 @@ class TestRunnerBase(object):
             for pkg in self.egg_paths:
                 path = self.egg_paths[pkg]
                 if path.strip() != "":
-                    content = content.replace(path,os.path.join(os.getcwd(),pkg))
+                    content = content.replace(path,
+                                              os.path.join(os.getcwd(),
+                                                           pkg))
             with open(filename, "w") as f:
                 f.write(content)
         run_command("coverage combine {}".format(" ".join(coverage_files)))
