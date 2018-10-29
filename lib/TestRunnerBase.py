@@ -18,6 +18,30 @@ import shlex
 SUCCESS = 0
 FAILURE = 1
 
+ 
+def _get_module_path(name):
+    f = tempfile.NamedTemporaryFile(mode="w")
+    print("from __future__ import print_function\nimport imp\n"
+            "import {pkg}\nprint(imp.reload({pkg}).__path__[0])".format(
+                pkg=name), file=f)
+    f.file.flush()
+    p = Popen(shlex.split("python {}".format(f.name)), stdout=PIPE,
+                stderr=PIPE, cwd=tempfile.gettempdir())
+    o, e = p.communicate()
+    pkg = o.decode("utf-8").strip()
+    return pkg
+
+def _get_local_py_files(pkg):
+    length = len(pkg) + 1
+    local_py_files = []
+    for path, subdirs, files in os.walk(pkg):
+        for name in files:
+            if name[-3:].lower() == ".py":
+                local_py_files.append(os.path.join(path[length:], name))
+    return local_py_files
+
+
+
 
 class TestRunnerBase(object):
 
@@ -30,18 +54,6 @@ class TestRunnerBase(object):
       args, get_sample_data)
       runner.run(workdir, args.tests)
     """
-    def _get_module_path(self, name):
-        f = tempfile.NamedTemporaryFile(mode="w")
-        print("from __future__ import print_function\nimport imp\n"
-              "import {pkg}\nprint(imp.reload({pkg}).__path__[0])".format(
-                  pkg=name), file=f)
-        f.file.flush()
-        p = Popen(shlex.split("python {}".format(f.name)), stdout=PIPE,
-                  stderr=PIPE, cwd=tempfile.gettempdir())
-        o, e = p.communicate()
-        pkg = o.decode("utf-8").strip()
-        return pkg
-
     def __init__(self, test_suite_name, options=[], options_files=[],
                  get_sample_data=False, test_data_files_info=None):
         """
@@ -174,14 +186,15 @@ class TestRunnerBase(object):
         coverage_opts = ""
         self.egg_paths = {}
         for pkg in coverage_info["include"]:
-            path = self._get_module_path(pkg)
+            print("Getting modukle ofr:",pkg)
+            path = _get_module_path(pkg)
             self.egg_paths[pkg] = path
             opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-            coverage_opts += " {new}".format(new=opt)
+            #coverage_opts += " {new}".format(new=opt)
             if self.args.coverage_from_repo:
                 path = os.path.join(os.getcwd())
                 opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-                coverage_opts += " {new}".format(new=opt)
+                #coverage_opts += " {new}".format(new=opt)
         return coverage_opts.split()
 
     def __create_coverage_rc(self, workdir):
@@ -206,8 +219,13 @@ class TestRunnerBase(object):
             return ret_code
         try:
             with open(coverage_rc, "a+") as f:
-                f.write("include =\n\t{}/*.py\n".format(
-                    self._get_module_path("DV3D")))
+                f.write("source =\n")
+                for pkg in coverage_info["include"]:
+                    local_files = _get_local_py_files(pkg)
+                    egg = _get_module_path(pkg)
+                    for name in local_files:
+                        f.write("\t{}/{}\n".format(egg, name))
+                        f.write("\t{}/{}\n".format(sys.prefix, name))
                 if "subprocess" in coverage_info:
                     for a_subprocess in coverage_info["subprocess"]:
                         subprocess_file = os.path.join(sys.prefix,

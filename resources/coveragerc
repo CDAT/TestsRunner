@@ -2,7 +2,6 @@
 verbosity = 2
 
 [coverage:run]
-branch = True
 concurrency = multiprocessing
 data_file = .cvrg
 
