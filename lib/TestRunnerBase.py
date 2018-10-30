@@ -337,7 +337,7 @@ class TestRunnerBase(object):
                 return ret_code
             self.restore_from = None
         else:
-            if os.path.exists(self.sitecustomize_py):
+            if hasattr(self, "sitecustomize_py") and os.path.exists(self.sitecustomize_py):
                 os.remove(self.sitecustomize_py)
 
         return SUCCESS
