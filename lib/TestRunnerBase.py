@@ -18,18 +18,19 @@ import shlex
 SUCCESS = 0
 FAILURE = 1
 
- 
+
 def _get_module_path(name):
     f = tempfile.NamedTemporaryFile(mode="w")
     print("from __future__ import print_function\nimport imp\n"
-            "import {pkg}\nprint(imp.reload({pkg}).__path__[0])".format(
-                pkg=name), file=f)
+          "import {pkg}\nprint(imp.reload({pkg}).__path__[0])".format(
+              pkg=name), file=f)
     f.file.flush()
     p = Popen(shlex.split("python {}".format(f.name)), stdout=PIPE,
-                stderr=PIPE, cwd=tempfile.gettempdir())
+              stderr=PIPE, cwd=tempfile.gettempdir())
     o, e = p.communicate()
     pkg = o.decode("utf-8").strip()
     return pkg
+
 
 def _get_local_py_files(pkg):
     length = len(pkg) + 1
@@ -39,8 +40,6 @@ def _get_local_py_files(pkg):
             if name[-3:].lower() == ".py":
                 local_py_files.append(os.path.join(path[length:], name))
     return local_py_files
-
-
 
 
 class TestRunnerBase(object):
@@ -186,15 +185,14 @@ class TestRunnerBase(object):
         coverage_opts = ""
         self.egg_paths = {}
         for pkg in coverage_info["include"]:
-            print("Getting modukle ofr:",pkg)
             path = _get_module_path(pkg)
             self.egg_paths[pkg] = path
-            opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-            #coverage_opts += " {new}".format(new=opt)
-            if self.args.coverage_from_repo:
-                path = os.path.join(os.getcwd())
-                opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-                #coverage_opts += " {new}".format(new=opt)
+            # opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+            # coverage_opts += " {new}".format(new=opt)
+            # if self.args.coverage_from_repo:
+            #     path = os.path.join(os.getcwd())
+            #     opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+            #     coverage_opts += " {new}".format(new=opt)
         return coverage_opts.split()
 
     def __create_coverage_rc(self, workdir):
@@ -337,7 +335,8 @@ class TestRunnerBase(object):
                 return ret_code
             self.restore_from = None
         else:
-            if hasattr(self, "sitecustomize_py") and os.path.exists(self.sitecustomize_py):
+            if hasattr(self, "sitecustomize_py") and \
+                    os.path.exists(self.sitecustomize_py):
                 os.remove(self.sitecustomize_py)
 
         return SUCCESS
