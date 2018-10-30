@@ -55,7 +55,7 @@ aliases:
   - &conda_upload
     name: conda_upload
     command: |
-       if [[ $CIRCLE_BRANCH != 'master' ]]; then
+       if [[ $CIRCLE_BRANCH != 'subprocess_coverage' ]]; then
           exit 0
        fi
        export PATH=${HOME}/project/$WORKDIR/miniconda/bin:$PATH
@@ -67,8 +67,8 @@ aliases:
        export PKG_NAME=testsrunner
        export USER=cdat
        export VERSION=8.0
-       export LABEL=nightly
-       python ./prep_for_build.py -l $VERSION
+       export LABEL=linatest
+       python ./prep_for_build.py -l $VERSION -b 'subprocess_coverage'
        if [[ $PY_VER = 'py2' ]]; then
           conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=2.7
        else
