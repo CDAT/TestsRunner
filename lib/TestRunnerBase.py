@@ -80,7 +80,7 @@ class TestRunnerBase(object):
                     "--attributes", "--parameters", "--diags",
                     "--baseline", "--checkout-baseline",
                     "--html", "--failed", "--package",
-                    "--coverage-from-repo",
+                    "--coverage-from-repo", "--coverage-from-egg",
                     "--no-baselines-fallback-on-master"]
         for option in set(options):
             parser.use(option)
@@ -187,12 +187,13 @@ class TestRunnerBase(object):
         for pkg in coverage_info["include"]:
             path = _get_module_path(pkg)
             self.egg_paths[pkg] = path
-            # opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-            # coverage_opts += " {new}".format(new=opt)
-            # if self.args.coverage_from_repo:
-            #     path = os.path.join(os.getcwd())
-            #     opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
-            #     coverage_opts += " {new}".format(new=opt)
+            if not self.args.coverage_from_egg:
+                opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+                coverage_opts += " {new}".format(new=opt)
+                if self.args.coverage_from_repo:
+                    path = os.path.join(os.getcwd())
+                    opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+                    coverage_opts += " {new}".format(new=opt)
         return coverage_opts.split()
 
     def __create_coverage_rc(self, workdir):
