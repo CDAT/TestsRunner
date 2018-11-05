@@ -34,6 +34,12 @@
         "help": "run nose test with coverage for the packages specified in the json file", 
         "type": "str"
     }, 
+    "--coverage-from-egg": {
+        "action": "store_true", 
+        "default": false, 
+        "help": "run tests coverage on files installed via egg", 
+        "type": null
+    }, 
     "--coverage-from-repo": {
         "action": "store_true", 
         "default": false, 
