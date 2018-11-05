@@ -192,7 +192,8 @@ class TestRunnerBase(object):
                 coverage_opts += " {new}".format(new=opt)
                 if self.args.coverage_from_repo:
                     path = os.path.join(os.getcwd())
-                    opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+                    opt = "--cover-package {p}".format(
+                        p=os.path.join(path, pkg))
                     coverage_opts += " {new}".format(new=opt)
         return coverage_opts.split()
 
@@ -317,8 +318,8 @@ class TestRunnerBase(object):
                     path = self.egg_paths[pkg]
                     if path.strip() != "":
                         content = content.replace(path,
-                                                os.path.join(os.getcwd(),
-                                                            pkg))
+                                                  os.path.join(os.getcwd(),
+                                                               pkg))
                 with open(filename, "w") as f:
                     f.write(content)
         run_command("coverage combine {}".format(" ".join(coverage_files)))
