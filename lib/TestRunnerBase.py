@@ -188,7 +188,7 @@ class TestRunnerBase(object):
             path = _get_module_path(pkg)
             self.egg_paths[pkg] = path
             if not self.args.coverage_from_egg:
-                opt = "--cover-package {p}".format(p=os.path.join(path, pkg))
+                opt = "--cover-package {p}".format(p=path)
                 coverage_opts += " {new}".format(new=opt)
                 if self.args.coverage_from_repo:
                     path = os.path.join(os.getcwd())
@@ -309,17 +309,18 @@ class TestRunnerBase(object):
                         print(l, file=f)
         print("COV FILES:", coverage_files)
         # replace moduyle path with repo path
-        for filename in coverage_files:
-            with open(filename) as f:
-                content = f.read()
-            for pkg in self.egg_paths:
-                path = self.egg_paths[pkg]
-                if path.strip() != "":
-                    content = content.replace(path,
-                                              os.path.join(os.getcwd(),
-                                                           pkg))
-            with open(filename, "w") as f:
-                f.write(content)
+        if self.args.coverage_from_egg:
+            for filename in coverage_files:
+                with open(filename) as f:
+                    content = f.read()
+                for pkg in self.egg_paths:
+                    path = self.egg_paths[pkg]
+                    if path.strip() != "":
+                        content = content.replace(path,
+                                                os.path.join(os.getcwd(),
+                                                            pkg))
+                with open(filename, "w") as f:
+                    f.write(content)
         run_command("coverage combine {}".format(" ".join(coverage_files)))
         run_command("coverage xml")
         run_command("coverage html")
