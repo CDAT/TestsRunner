@@ -215,17 +215,31 @@ class TestRunnerBase(object):
         coverage_rc = os.path.join(workdir, ".coveragerc")
         cmd = "cp {s} {d}".format(s=template_file, d=coverage_rc)
         ret_code, cmd_output = self.__run_cmd(cmd)
+        here = os.getcwd()
         if ret_code != SUCCESS:
             return ret_code
         try:
             with open(coverage_rc, "a+") as f:
-                f.write("source =\n")
+                f.write("include =\n")
                 for pkg in coverage_info["include"]:
                     local_files = _get_local_py_files(pkg)
                     egg = _get_module_path(pkg)
+                    print("EGGGGGGGGGGGG:",egg)
                     for name in local_files:
                         f.write("\t{}/{}\n".format(egg, name))
-                        f.write("\t{}/{}\n".format(sys.prefix, name))
+                        #f.write("\t{}/{}\n".format(sys.prefix, name))
+                        f.write("\t{}/{}\n".format(pkg, name))
+                    for procs in coverage_info.get("subprocess",[]):
+                        print("PROCS      : ", procs)
+                        for proc in glob.glob(procs):
+                            print("\tPROC      : ", proc)
+                            f.write("\t{}\n".format(proc))
+                            f.write("\t{}\n".format(
+                                os.path.join(os.path.dirname(egg),
+                                            "EGG-INFO",
+                                            "scripts",
+                                            os.path.basename(proc))))
+
                 if "subprocess" in coverage_info:
                     for a_subprocess in coverage_info["subprocess"]:
                         subprocess_file = os.path.join(sys.prefix,
@@ -252,6 +266,8 @@ class TestRunnerBase(object):
         variable. If it is set, coverage.py will invoke sitecustomize.py
         which forces python to run coverage.py on the subprocesses.
         '''
+        if 1:
+            return SUCCESS
         path = self.__get_site_packages_path()
         self.sitecustomize_py = os.path.join(path, 'sitecustomize.py')
         if os.path.exists(self.sitecustomize_py):
@@ -299,6 +315,8 @@ class TestRunnerBase(object):
         return ret_code
 
     def __collect_coverage(self, workdir):
+        with open(self.args.coverage, 'r') as f:
+            coverage_info = json.load(f)
         coverage_files = glob.glob(".cvrg/*")
         coverage_files += glob.glob(".cvrg.*")
         if os.path.exists(".coveragerc"):
@@ -310,6 +328,7 @@ class TestRunnerBase(object):
                         print(l, file=f)
         print("COV FILES:", coverage_files)
         # replace moduyle path with repo path
+        here = os.getcwd()
         if self.args.coverage_from_egg:
             for filename in coverage_files:
                 with open(filename) as f:
@@ -320,6 +339,13 @@ class TestRunnerBase(object):
                         content = content.replace(path,
                                                   os.path.join(os.getcwd(),
                                                                pkg))
+                        for procs in coverage_info.get("subprocess",[]):
+                            for proc in glob.glob(procs):
+                                nm = os.path.basename(proc)
+                                print("REPLACING: ",os.path.join(
+                                    os.path.dirname(path),"EGG-INFO","scripts", nm), proc)
+                                content = content.replace(os.path.join(
+                                    os.path.dirname(path),"EGG-INFO","scripts", nm), os.path.join(here,proc))
                 with open(filename, "w") as f:
                     f.write(content)
         run_command("coverage combine {}".format(" ".join(coverage_files)))

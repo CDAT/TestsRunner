@@ -3,6 +3,7 @@ verbosity = 2
 
 [coverage:run]
 concurrency = multiprocessing
+parallel = True
 data_file = .cvrg
 
 
