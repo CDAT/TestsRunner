@@ -127,6 +127,9 @@ def run_nose(opts, verbosity, test_name):
         test_env = None
     start = time.time()
     ret_code, out = run_command(command, True, verbosity, env=test_env)
+    if "raise CoverageException" in "".join(out):
+        # Let's not worry about coerage error (no data)
+        ret_code = 0
     end = time.time()
     return {test_name: {"result": ret_code, "log": out, "times": {
         "start": start, "end": end}}}

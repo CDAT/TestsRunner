@@ -224,15 +224,12 @@ class TestRunnerBase(object):
                 for pkg in coverage_info["include"]:
                     local_files = _get_local_py_files(pkg)
                     egg = _get_module_path(pkg)
-                    print("EGGGGGGGGGGGG:",egg)
                     for name in local_files:
                         f.write("\t{}/{}\n".format(egg, name))
                         #f.write("\t{}/{}\n".format(sys.prefix, name))
                         f.write("\t{}/{}\n".format(pkg, name))
                     for procs in coverage_info.get("subprocess",[]):
-                        print("PROCS      : ", procs)
                         for proc in glob.glob(procs):
-                            print("\tPROC      : ", proc)
                             f.write("\t{}\n".format(proc))
                             f.write("\t{}\n".format(
                                 os.path.join(os.path.dirname(egg),
@@ -326,7 +323,6 @@ class TestRunnerBase(object):
                 for l in lines:
                     if "data_file" not in l:
                         print(l, file=f)
-        print("COV FILES:", coverage_files)
         # replace moduyle path with repo path
         here = os.getcwd()
         if self.args.coverage_from_egg:
@@ -342,8 +338,6 @@ class TestRunnerBase(object):
                         for procs in coverage_info.get("subprocess",[]):
                             for proc in glob.glob(procs):
                                 nm = os.path.basename(proc)
-                                print("REPLACING: ",os.path.join(
-                                    os.path.dirname(path),"EGG-INFO","scripts", nm), proc)
                                 content = content.replace(os.path.join(
                                     os.path.dirname(path),"EGG-INFO","scripts", nm), os.path.join(here,proc))
                 with open(filename, "w") as f:
