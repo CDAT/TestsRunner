@@ -1,9 +1,6 @@
 [nosetests]
 verbosity = 2
 
-[report]
-ignore_errors = True
-
 [coverage:run]
 concurrency = multiprocessing
 parallel = True
