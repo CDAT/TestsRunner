@@ -160,7 +160,7 @@ jobs:
       WORKDIR: "workspace/test_linux_testsrunner_py3"
       OS: "linux-64"
       PY_VER: "py3"
-      COVERAGE: "-c tests/coverage.json"
+      COVERAGE: "-c tests/coverage.json --coverage-from-repo"
     steps:
       - checkout
       - run: *setup_miniconda
