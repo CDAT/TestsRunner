@@ -89,7 +89,6 @@ class TestRunnerBase(object):
             parser.use(option)
 
         self.args = parser.get_parameter()
-        print("ARGS IN INIT:",self.args.coverage)
         self.test_suite_name = test_suite_name
         self.verbosity = self.args.verbosity
         self.ncpus = self.args.num_workers
