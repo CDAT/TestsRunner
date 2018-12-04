@@ -15,8 +15,10 @@ from .image_compare import script_data
 import tempfile
 from subprocess import Popen, PIPE
 import shlex
+import pkg_resources
 SUCCESS = 0
 FAILURE = 1
+egg_path = pkg_resources.resource_filename(pkg_resources.Requirement.parse("testsrunner"), "share/testsrunner")
 
 
 def _get_module_path(name):
@@ -67,7 +69,7 @@ class TestRunnerBase(object):
                             data files needed for the test suite.
         """
         options_files.insert(0, os.path.join(
-            sys.prefix, "share", "testsrunner", "testsrunner.json"))
+            egg_path, "testsrunner.json"))
         # Remove possible duplicates
         options_files_used = []
         for filename in options_files:
@@ -211,7 +213,7 @@ class TestRunnerBase(object):
         with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
 
-        testsrunner_dir = os.path.join(sys.prefix, "share", "testsrunner")
+        testsrunner_dir = egg_path
         template_file = os.path.join(testsrunner_dir, "coveragerc")
         coverage_rc = os.path.join(workdir, ".coveragerc")
         cmd = "cp {s} {d}".format(s=template_file, d=coverage_rc)

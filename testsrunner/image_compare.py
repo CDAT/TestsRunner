@@ -2,6 +2,9 @@ import sys
 import os
 from jinja2 import Template
 import codecs
+import pkg_resources
+
+egg_path = pkg_resources.resource_filename(pkg_resources.Requirement.parse("testsrunner"), "share/testsrunner")
 
 try:
     raw_input
@@ -10,7 +13,7 @@ except NameError:
 
 
 def script_data():
-    with open(os.path.join(sys.prefix, "share", "testsrunner",
+    with open(os.path.join(egg_path,
                            "image-compare.min.js")) as f:
         data = f.read()
     # py3 vs py2
@@ -21,7 +24,7 @@ def script_data():
 
 
 def template_data():
-    with open(os.path.join(sys.prefix, "share", "testsrunner",
+    with open(os.path.join(egg_path,
                            "diff.html")) as f:
         data = f.read()
     # py3 vs py2
