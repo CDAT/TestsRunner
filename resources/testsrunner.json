@@ -103,7 +103,7 @@
         "type": "str"
     }, 
     "--timeout": {
-        "help": "Timeout for individual test",
+        "help": "Timeout for tests",
         "required": false,
         "default": 3600,
         "type": "int"
