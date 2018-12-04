@@ -20,7 +20,7 @@ except:
     descr = Version
 
 
-setup(name="testrunner",
+setup(name="testsrunner",
       version=descr,
       author="AIMS Software Team",
       description="Utilities for running nose-based test suites",
