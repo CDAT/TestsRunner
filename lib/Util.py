@@ -41,31 +41,53 @@ def run_command(command, join_stderr=True, verbosity=2,
     return ret_code, out
 
 
-def get_sampledata_path():
-    env = os.environ.get("CDAT_SETUP_PATH",
-                         os.environ.get("UVCDAT_SETUP_PATH",
-                                        sys.prefix))
-    return os.path.join(env, "share", "cdat", "sample_data")
+def get_sampledata_path(setup_env_variables=None, default_path=None):
+    """Return default path where sample data should be sitting
+    defaults to sys.prefix/share/testsrunner/sample_data
+    But sys.prefix can be overwritten by the firs tvariable found in the list passed by setup_env_variables
+    The rest of the path can be overwritten via default_path
+    :type setup_env_variables: `list` or `str`
+    :type default_path: `str`
+    """
+    if setup_env_variables is None:
+        setup_env_variables = ["TESTSRUNNER_SETUP_PATH"]
+    # Make sure we passed a list of env variables, not just one
+    if not isinstance(setup_env_variables, (list,tuple)):
+        setup_env_variables = list(setup_env_variables)
+    sampledata_path = None
+    for env in setup_env_variables:
+        sampledata_path = os.environ.get(env, None)
+        if sampledata_path is not None:
+            break
+    if sampledata_path is None:
+        sampledata_path = sys.prefix
+    if default_path is None:
+        default_path = os.path.join("share", "testsrunner", "sample_data")
+    return os.path.join(env, default_path)
 
 
-def download_sample_data_files(files_md5, path=None):
+def download_sample_data_files(files_md5, path=None,
+                               setup_env_variables=None,
+                               default_path=None):
     """ Downloads sample data listed in <files_md5>
     into the specified <path>.
     If <path> is not set, it will download it to a default download
-    directory specified by os.environ["UVCDAT_SETUP_PATH"].
+    directory specified by os.path.join(setup_env_variables, default_path)
+    where setup_env_variables is actually a list of env variables to look at.
 
     :Example:
 
     ... doctest:: download_sample_data
 
     >>> import os # use this to check if sample data already exists
-    >>> if not os.path.isdir(os.environ['UVCDAT_SETUP_PATH']):
-    ...     cdat_info.download_sample_data_files()
+    >>> cdat_info.download_sample_data_files()
 
     :param path: String of a valid filepath.
     If None, sample data will be downloaded into the
     vcs.sample_data directory.
     :type path: `str`_ or `None`_
+    :type setup_env_variables: `list` or `str`
+    :type default_path: `str`
     """
     print("MD5:", files_md5)
     if not os.path.exists(files_md5) or os.path.isdir(files_md5):
