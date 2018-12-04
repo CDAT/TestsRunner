@@ -80,6 +80,7 @@ class TestRunnerBase(object):
                     "--attributes", "--parameters", "--diags",
                     "--baseline", "--checkout-baseline",
                     "--html", "--failed", "--package",
+                    "--timeout",
                     "--coverage-from-repo", "--coverage-from-egg",
                     "--no-baselines-fallback-on-master"]
         for option in set(options):
@@ -364,7 +365,7 @@ class TestRunnerBase(object):
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)
         try:
-            outs = p.map_async(func, test_names).get(3600)
+            outs = p.map_async(func, test_names).get(self.args.timeout)
         except KeyboardInterrupt:
             sys.exit(1)
         results = {}
