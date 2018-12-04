@@ -1,15 +1,12 @@
 import unittest
 import os
 import sys
-import shutil
-import subprocess
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 lib_dir = os.path.join(this_dir, '..', 'lib')
 sys.path.append(lib_dir)
 
 from testsrunner import TestRunnerBase
-from Util import run_command
 
 class TestRunnerBaseSubClass(TestRunnerBase):
     def __init__(self, test_suite_name, options=[], options_files=[],
@@ -26,7 +23,8 @@ class TestTestRunnerBase(unittest.TestCase):
         options_files = []
         option_file = os.path.join(this_dir, '..', 'tests', 'test_options_file.json')
         options_files.insert(0, option_file)
-        options = [ "-s", "--timeout"]
+        options = [ "-s", "--timeout", "--coverage", "--coverage-from-egg"]
+        options += [ "--with-coverage", "--cover-html", "--cover-xml", "--cover-package", "--coverage" ]
         self.runner = TestRunnerBaseSubClass(testsuite_name, options=options,
                                              options_files=options_files)
 
