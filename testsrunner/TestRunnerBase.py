@@ -353,7 +353,6 @@ class TestRunnerBase(object):
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
-        print("IN DO RUN:",self.args.coverage)
         if self.args.coverage:
             coverage_opts = self.__get_coverage_packages_opt(workdir)
             opts += ["--with-coverage", ]
@@ -593,7 +592,6 @@ class TestRunnerBase(object):
         workdir: top level project repo directory
         tests  : a space separated list of test cases
         """
-        print("DFFGD", self.args.coverage)
         os.chdir(workdir)
         if tests is None:
             test_names = self._get_tests(workdir, self.args.tests)
