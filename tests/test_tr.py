@@ -9,7 +9,7 @@ lib_dir = os.path.join(this_dir, '..', 'lib')
 sys.path.append(lib_dir)
 
 from testsrunner import TestRunnerBase
-from Util import run_command
+from testsrunner.Util import run_command
 
 class TestRunnerBaseSubClass(TestRunnerBase):
     def __init__(self, test_suite_name, options=[], options_files=[],

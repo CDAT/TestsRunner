@@ -102,6 +102,12 @@
         "required": false, 
         "type": "str"
     }, 
+    "--timeout": {
+        "help": "Timeout for tests",
+        "required": false,
+        "default": 3600,
+        "type": "int"
+    },
     "--verbosity": {
         "aliases": [
             "-v"

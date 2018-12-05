@@ -15,8 +15,10 @@ from .image_compare import script_data
 import tempfile
 from subprocess import Popen, PIPE
 import shlex
+import pkg_resources
 SUCCESS = 0
 FAILURE = 1
+egg_path = pkg_resources.resource_filename(pkg_resources.Requirement.parse("testsrunner"), "share/testsrunner")
 
 
 def _get_module_path(name):
@@ -67,7 +69,7 @@ class TestRunnerBase(object):
                             data files needed for the test suite.
         """
         options_files.insert(0, os.path.join(
-            sys.prefix, "share", "testsrunner", "testsrunner.json"))
+            egg_path, "testsrunner.json"))
         # Remove possible duplicates
         options_files_used = []
         for filename in options_files:
@@ -80,6 +82,7 @@ class TestRunnerBase(object):
                     "--attributes", "--parameters", "--diags",
                     "--baseline", "--checkout-baseline",
                     "--html", "--failed", "--package",
+                    "--timeout",
                     "--coverage-from-repo", "--coverage-from-egg",
                     "--no-baselines-fallback-on-master"]
         for option in set(options):
@@ -210,7 +213,7 @@ class TestRunnerBase(object):
         with open(self.args.coverage, 'r') as f:
             coverage_info = json.load(f)
 
-        testsrunner_dir = os.path.join(sys.prefix, "share", "testsrunner")
+        testsrunner_dir = egg_path
         template_file = os.path.join(testsrunner_dir, "coveragerc")
         coverage_rc = os.path.join(workdir, ".coveragerc")
         cmd = "cp {s} {d}".format(s=template_file, d=coverage_rc)
@@ -350,6 +353,7 @@ class TestRunnerBase(object):
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
+        print("IN DO RUN:",self.args.coverage)
         if self.args.coverage:
             coverage_opts = self.__get_coverage_packages_opt(workdir)
             opts += ["--with-coverage", ]
@@ -364,7 +368,7 @@ class TestRunnerBase(object):
             opts += ["-A", att]
         func = partial(run_nose, opts, self.verbosity)
         try:
-            outs = p.map_async(func, test_names).get(3600)
+            outs = p.map_async(func, test_names).get(self.args.timeout)
         except KeyboardInterrupt:
             sys.exit(1)
         results = {}
@@ -589,6 +593,7 @@ class TestRunnerBase(object):
         workdir: top level project repo directory
         tests  : a space separated list of test cases
         """
+        print("DFFGD", self.args.coverage)
         os.chdir(workdir)
         if tests is None:
             test_names = self._get_tests(workdir, self.args.tests)

@@ -12,6 +12,7 @@ build:
   number: 0
   skip: True  # [win]
   script: python setup.py install
+  noarch: python
 
 requirements:
   build:
