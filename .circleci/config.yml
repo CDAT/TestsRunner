@@ -1,185 +1,207 @@
-version: 2
+version: 2.1
 
-checkout:
-  post:
-    - ./ci-support/checkout_merge_commit.sh
+parameters:
+   pkg_name:
+      type: string
+      default: "testsrunner"
+   repo_name:
+      type: string
+      default: "testsrunner"
+   last_stable:
+      type: string
+      default: "8.2"
+   user:
+      type: string
+      default: "cdat"
+   label:
+      type: string
+      default: "nightly"
+   env_name:
+      type: string
+      default: "test_testsrunner"
+
 
 aliases:
+  - &setup_env
+    name: setup_env
+    command: |
+       if [[ `uname` == "Darwin" ]]; then
+          echo 'export WORKDIR=/Users/distiller/project/workdir/macos' >> $BASH_ENV
+       else
+          echo 'export WORKDIR=/home/circleci/project/workdir/linux' >> $BASH_ENV
+       fi
+       source $BASH_ENV
+       mkdir -p $WORKDIR
+
   - &setup_miniconda
     name: setup_miniconda
     command: |
-      mkdir -p $WORKDIR
-      git clone -b validateNightly --depth 1 git@github.com:CDAT/cdat workspace/cdat
-      python workspace/cdat/scripts/install_miniconda.py -w $WORKDIR -p 'py3'
+       source $BASH_ENV
+       mkdir -p $WORKDIR
+       git clone -b validateNightlyNew https://github.com/CDAT/cdat.git $WORKDIR/cdat
+       # install_miniconda.py installs miniconda3 under $WORKDIR/miniconda
+       python $WORKDIR/cdat/scripts/install_miniconda.py -w $WORKDIR -p 'py3'
 
-  - &create_conda_env
-    name: create_conda_env
-    environment:
-       PKGS: "requests cdp flake8 nose"
-       CHANNELS: "-c cdat/label/nightly -c conda-forge -c cdat"
+  - &conda_rerender
+    name: conda_rerender
     command: |
-       export PATH=$WORKDIR/miniconda/bin:$PATH
-       conda config --set always_yes yes --set changeps1 no
-       conda update -y -q conda
-       conda config --set anaconda_upload no
-       if [[ $PY_VER = "py2" ]]; then
-          conda create -q -n $PY_VER $CHANNELS $PKGS python=2 coverage
-       else
-          conda create -q -n $PY_VER $CHANNELS $PKGS python=3 coverage coveralls
-       fi
+       source $BASH_ENV
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate base
+       make conda-rerender conda=$WORKDIR/miniconda/bin/conda workdir=$WORKDIR last_stable=$LAST_STABLE branch=$CIRCLE_BRANCH
 
-  - &setup_testsrunner
-    name: setup_testsrunner
+  - &conda_build
+    name: conda_build
     command: |
-       export PATH=$WORKDIR/miniconda/bin:$PATH
-       export UVCDAT_ANONYMOUS_LOG=False
-       source activate $PY_VER
-       python setup.py install
+       source $BASH_ENV
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate base
+       os=`uname`
+       artifacts_dir="artifacts/artifacts.${os}.noarch"
+       make conda-build conda=$WORKDIR/miniconda/bin/conda workdir=$WORKDIR artifact_dir=$PWD/$artifacts_dir
+       ls $artifacts_dir
+
+  - &setup_run_tests
+    name: setup_run_tests
+    command: |
+       source $BASH_ENV
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate base
+       export CONDA_PY_VER="python=$PY_VER"
+
+       make setup-tests conda=$WORKDIR/miniconda/bin/conda conda_env=$ENV_NAME extra_pkgs="$CONDA_PY_VER $COVERAGE_PKGS"
+       make conda-dump-env conda=$WORKDIR/miniconda/bin/conda conda_env=$ENV_NAME artifact_dir=spec_artifacts conda_env_filename=$CIRCLE_JOB
+
 
   - &run_tests
     name: run_tests
     command: |
-       export PATH=$WORKDIR/miniconda/bin:$PATH
-       export CDAT_ANONYMOUS_LOG=False
-       export CDAT_SETUP_PATH=${HOME}
-       source activate $PY_VER
-       if [[ $PY_VER = 'py2' ]]; then
-          python run_tests.py -H -v2 -n 2
+       source $BASH_ENV
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate $ENV_NAME
+       # NOTE: we need to do setup.py install for testsrunner (but not necessarily for other projects)
+       # one reason was due to testsrunner/__init__.py writes out a file that is accessed when
+       # we import the package
+       # DO NOT just copy 
+       python setup.py install
+       python -c "import $PKG_NAME"
+       if [[ `uname` == "Linux" && $PY_VER == "3.7" ]]; then
+          make run-tests conda=$WORKDIR/miniconda/bin/conda conda_env=$ENV_NAME coverage=1
        else
-          python run_tests.py -H -v2 -n 2 $COVERAGE
+          make run-tests conda=$WORKDIR/miniconda/bin/conda conda_env=$ENV_NAME
        fi
-       RESULT=$?
-       echo "*** $PY_VER test result: "${RESULT} 
-       exit $RESULT
 
   - &conda_upload
     name: conda_upload
     command: |
-       if [[ $CIRCLE_BRANCH != 'master' ]]; then
-          exit 0
-       fi
-       export PATH=${HOME}/project/$WORKDIR/miniconda/bin:$PATH
-       conda install conda-build anaconda-client
-       conda config --set anaconda_upload no
-       export CONDA_BLD_PATH=`pwd`/conda_build
-       git clone git://github.com/cdat/conda-recipes
-       cd conda-recipes
-       export PKG_NAME=testsrunner
-       export USER=cdat
-       export VERSION=8.0
-       export LABEL=nightly
-       if [[ -d testsrunner ]]; then
-          rm -rf testsrunner
-       fi
-       ln -s ../recipe testsrunner
-       python ./prep_for_build.py -l $VERSION
-       conda build $PKG_NAME -c conda-forge --python=3.6
-       anaconda -t $CONDA_UPLOAD_TOKEN upload -u $USER -l $LABEL $CONDA_BLD_PATH/noarch/$PKG_NAME-$VERSION.`date +%Y*`0.tar.bz2 --force
+       source $BASH_ENV
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate base
+
+       UPLOAD_OPTIONS="conda_upload_token=$CONDA_UPLOAD_TOKEN user=$USER label=$LABEL"
+       make conda-upload $UPLOAD_OPTIONS conda=$WORKDIR/miniconda/bin/conda artifact_dir="$PWD/artifacts/*Linux*/"
 
   - &run_coveralls
     name: run_coveralls
     command: |
-       export PATH=$WORKDIR/miniconda/bin:$PATH
-       source activate $PY_VER
+       source $BASH_ENV
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate $ENV_NAME
        coveralls
-       source deactivate
+       conda deactivate
+
+executors:
+   linux:
+      machine:
+         image: circleci/classic:latest
+   macos:
+      macos:
+         xcode: "11.4.0"
 
 jobs:
-  macos_testsrunner_py2:
-    macos:
-      xcode: "9.2.0"
-    environment:
-      WORKDIR: "workspace/test_macos_testsrunner"
-      OS: "osx-64"
-      PY_VER: "py2"
-    steps:
-      - checkout
-      - run: *setup_miniconda
-      - run: *create_conda_env
-      - run: *setup_testsrunner
-      - run: *run_tests
-      - store_artifacts:
-          path: tests_html
-          destination: tests_html
-      - store_artifacts:
-          path: tests_png
-          destination: tests_png
+   build:
+      parameters:
+         os:
+            type: executor
+      executor: << parameters.os >>
+      environment:
+         PKG_NAME: << pipeline.parameters.pkg_name >>
+         REPO_NAME: << pipeline.parameters.repo_name >>
+         LAST_STABLE: << pipeline.parameters.last_stable >>
+      steps:
+         - checkout
+         - run: *setup_env
+         - run: *setup_miniconda
+         - run: *conda_rerender
+         - run: *conda_build
+         - run: ls -l artifacts
+         - run: ls -l artifacts/ar*
+         - persist_to_workspace:
+              root: .
+              paths: 
+                 - workdir
+                 - artifacts
 
-  macos_testsrunner_py3:
-    macos:
-      xcode: "9.2.0"
-    environment:
-      WORKDIR: "workspace/test_macos_testsrunner"
-      OS: "osx-64"
-      PY_VER: "py3"
-    steps:
-      - checkout
-      - run: *setup_miniconda
-      - run: *create_conda_env
-      - run: *setup_testsrunner
-      - run: *run_tests
-      - store_artifacts:
-          path: tests_html
-          destination: tests_html
-      - store_artifacts:
-          path: tests_png
-          destination: tests_png
+   test:
+      parameters:
+         os:
+            type: executor
+         py_ver: 
+            type: string
+      executor: << parameters.os >>
+      environment:
+         PKG_NAME: << pipeline.parameters.pkg_name >>
+         REPO_NAME: << pipeline.parameters.repo_name >>
+         LAST_STABLE: << pipeline.parameters.last_stable >>
+         ENV_NAME: << pipeline.parameters.env_name >>
+         PY_VER: << parameters.py_ver >>
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_env
+         - run: *setup_run_tests
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+              path: spec_artifacts
+              destination: spec_artifacts
 
-  linux_testsrunner_py2:
-    machine:
-      image: circleci/classic:latest
-    environment:
-      WORKDIR: "workspace/test_linux_testsrunner_py2"
-      OS: "linux-64"
-      PY_VER: "py2"
-    steps:
-      - checkout
-      - run: *setup_miniconda
-      - run: *create_conda_env
-      - run: *setup_testsrunner
-      - run: *run_tests
-      - store_artifacts:
-          path: tests_html
-          destination: tests_html
-      - store_artifacts:
-          path: tests_png
-          destination: tests_png
-
-  linux_testsrunner_py3:
-    machine:
-      image: circleci/classic:latest
-    environment:
-      # WORKDIR: /home/circleci/project/workdir/linux_testsrunner_py3
-      WORKDIR: "workspace/test_linux_testsrunner_py3"
-      OS: "linux-64"
-      PY_VER: "py3"
-      COVERAGE: "-c tests/coverage.json --coverage-from-egg"
-    steps:
-      - checkout
-      - run: *setup_miniconda
-      - run: *create_conda_env
-      - run: *setup_testsrunner
-      - run: *run_tests
-      - run: *run_coveralls
-      - run: *conda_upload
-      - store_artifacts:
-          path: tests_html
-          destination: tests_html
-      - store_artifacts:
-          path: tests_png
-          destination: tests_png
+   upload:
+      machine:
+         image: circleci/classic:latest
+      environment:
+         PKG_NAME: << pipeline.parameters.pkg_name >>
+         VERSION: << pipeline.parameters.last_stable >>
+         USER: << pipeline.parameters.user >>
+         LABEL: << pipeline.parameters.label >>
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_env
+         - run: *conda_upload
 
 workflows:
-  version: 2
-  testsrunner:
-    jobs:
-      - macos_testsrunner_py2
-      - macos_testsrunner_py3:
-           requires:
-              - macos_testsrunner_py2
-      - linux_testsrunner_py2
-      - linux_testsrunner_py3:
-           requires:
-              - linux_testsrunner_py2
+   version: 2.1
+   testsrunner:
+      jobs:
+         - build:
+              matrix:
+                 parameters:
+                    os: [ linux, macos ]
+              name: build-<< matrix.os >>
+         - test:
+              matrix:
+                 parameters:
+                    os: [ linux, macos ]
+                    py_ver: [ "3.6", "3.7", "3.8"]
+              name: test-<< matrix.os >>-<< matrix.py_ver >>
+              requires:
+                 - build-<< matrix.os >>
 
-
+         - upload:
+              requires:
+                 - test
