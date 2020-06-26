@@ -1,5 +1,5 @@
 .PHONY: conda-info conda-list setup-build setup-tests conda-rerender \
-	conda-build conda-upload conda-dump-env conda-cp-output get_testdata \
+	conda-build conda-upload conda-dump-env \
 	run-tests run-coveralls
 
 SHELL = /bin/bash
@@ -8,19 +8,19 @@ os = $(shell uname)
 pkg_name = testsrunner
 build_script = conda-recipes/build_tools/conda_build.py
 
-test_pkgs = ""
+#test_pkgs = "requests cdp flake8 nose"
 last_stable ?= 8.2
 
 conda_env ?= base
 workdir ?= $(PWD)/workspace
 branch ?= $(shell git rev-parse --abbrev-ref HEAD)
-extra_channels ?= conda-forge cdat/label/nightly
+extra_channels ?= cdat/label/nightly conda-forge
 conda ?= $(or $(CONDA_EXE),$(shell find /opt/*conda*/bin $(HOME)/*conda* -type f -iname conda))
 artifact_dir ?= $(PWD)/artifacts
 conda_env_filename ?= spec-file
 
-ifeq ($(coverage), 1)
-coverage = -c tests/coverage.json --coverage-from-egg
+ifeq ($(coverage),1)
+coverage_opt = -c tests/coverage.json --coverage-from-egg
 endif
 
 # TODO change back to master
@@ -74,7 +74,7 @@ conda-dump-env:
 	source $(conda_activate) $(conda_env); conda list --explicit > $(artifact_dir)/$(conda_env_filename).txt
 
 run-tests:
-	source $(conda_activate) $(conda_env); python run_tests.py -H -v2 $(coverage)
+	source $(conda_activate) $(conda_env); python run_tests.py -H -v2 $(coverage_opt)
 
 run-coveralls:
 	source $(conda_activate) $(conda_env); coveralls;

@@ -79,17 +79,7 @@ aliases:
        source $BASH_ENV
        source $WORKDIR/miniconda/etc/profile.d/conda.sh
        conda activate $ENV_NAME
-       # NOTE: we need to do setup.py install for testsrunner (but not necessarily for other projects)
-       # one reason was due to testsrunner/__init__.py writes out a file that is accessed when
-       # we import the package
-       # DO NOT just copy 
-       python setup.py install
-       python -c "import $PKG_NAME"
-       if [[ `uname` == "Linux" && $PY_VER == "3.7" ]]; then
-          make run-tests conda=$WORKDIR/miniconda/bin/conda conda_env=$ENV_NAME coverage=1
-       else
-          make run-tests conda=$WORKDIR/miniconda/bin/conda conda_env=$ENV_NAME
-       fi
+       make run-tests conda=$WORKDIR/miniconda/bin/conda conda_env=$ENV_NAME
 
   - &conda_upload
     name: conda_upload
@@ -134,8 +124,6 @@ jobs:
          - run: *setup_miniconda
          - run: *conda_rerender
          - run: *conda_build
-         - run: ls -l artifacts
-         - run: ls -l artifacts/ar*
          - persist_to_workspace:
               root: .
               paths: 
@@ -151,8 +139,6 @@ jobs:
       executor: << parameters.os >>
       environment:
          PKG_NAME: << pipeline.parameters.pkg_name >>
-         REPO_NAME: << pipeline.parameters.repo_name >>
-         LAST_STABLE: << pipeline.parameters.last_stable >>
          ENV_NAME: << pipeline.parameters.env_name >>
          PY_VER: << parameters.py_ver >>
       steps:
@@ -173,8 +159,6 @@ jobs:
       machine:
          image: circleci/classic:latest
       environment:
-         PKG_NAME: << pipeline.parameters.pkg_name >>
-         VERSION: << pipeline.parameters.last_stable >>
          USER: << pipeline.parameters.user >>
          LABEL: << pipeline.parameters.label >>
       steps:
@@ -185,7 +169,6 @@ jobs:
          - run: *conda_upload
 
 workflows:
-   version: 2.1
    testsrunner:
       jobs:
          - build:
@@ -201,7 +184,6 @@ workflows:
               name: test-<< matrix.os >>-<< matrix.py_ver >>
               requires:
                  - build-<< matrix.os >>
-
          - upload:
               requires:
                  - test
