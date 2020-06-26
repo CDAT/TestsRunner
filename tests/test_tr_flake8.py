@@ -21,7 +21,7 @@ class TestFlake8(unittest.TestCase):
         print()
         print()
         print()
-        P = subprocess.Popen(shlex.split("flake8 --show-source --statistics %s" % pth),
+        P = subprocess.Popen(shlex.split("flake8 --show-source --statistics --ignore=F841,E501 --max-line-length=120 %s" % pth),
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
@@ -29,4 +29,4 @@ class TestFlake8(unittest.TestCase):
         out = P.stdout.read()
         if out != "":
             print(out)
-        self.assertEqual(len(out),0)
+        self.assertEqual(len(out), 0)

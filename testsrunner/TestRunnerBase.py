@@ -161,8 +161,7 @@ class TestRunnerBase(object):
                 msg = "baseline does not exist for branch {}".format(branch)
                 raise Exception(msg)
             else:
-                print("Could not checkout branch `{}`, " +
-                      "fallback on `master`".format(branch))
+                print("Could not checkout branch `{}`, fallback on `master`".format(branch))
                 ret_code, cmd_output = self.__run_cmd("git checkout master")
         os.chdir(workdir)
         return(ret_code)
@@ -308,9 +307,9 @@ class TestRunnerBase(object):
             with open(".coveragerc") as f:
                 lines = f.readlines()
             with open(".coveragerc", "w") as f:
-                for l in lines:
-                    if "data_file" not in l:
-                        print(l, file=f)
+                for ln in lines:
+                    if "data_file" not in ln:
+                        print(ln, file=f)
         print("COV FILES:", coverage_files)
         # replace moduyle path with repo path
         if self.args.coverage_from_egg:
@@ -387,9 +386,7 @@ class TestRunnerBase(object):
 
         if self.verbosity > 0:
             if len(outs) > 0:
-                print("Ran %i tests, %i failed (%.2f%% success)" %
-                      (len(outs), len(failed), 100. - float(len(failed)) /
-                       len(outs) * 100.))
+                print("Ran %i tests, %i failed (%.2f%% success)" % (len(outs), len(failed), 100. - float(len(failed)) / len(outs) * 100.))
             else:
                 print("No test run")
             if len(failed) > 0:
@@ -411,8 +408,7 @@ class TestRunnerBase(object):
         full_path = os.path.abspath(os.path.join(os.getcwd(), "..", path))
         if not os.path.exists(name):
             os.makedirs(name)
-        new_path = os.path.join(name, prefix + "_" +
-                                os.path.basename(full_path))
+        new_path = os.path.join(name, prefix + "_" + os.path.basename(full_path))
         try:
             shutil.copy(full_path, new_path)
         except Exception:
@@ -440,7 +436,7 @@ class TestRunnerBase(object):
                         try:
                             file2 = log[k].split()[2]
                         except Exception:
-                            file2 = log[k].split()[1][:-1]+log[j].split()[0]
+                            file2 = log[k].split()[1][:-1] + log[j].split()[0]
                             print("+++++++++++++++++++++++++", file2)
                 if log[j].find("Saving image diff") > -1:
                     diff = log[j].split()[-1]
@@ -544,12 +540,10 @@ class TestRunnerBase(object):
             t = result["times"]
             end = t["end"]
             start = t["start"]
-            print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                    time.ctime(start), time.ctime(end), end - start), file=fi)
+            print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (time.ctime(start), time.ctime(end), end - start), file=fi)
             if result["result"]:
-                print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                        time.ctime(start), time.ctime(end), end - start),
-                      file=failed_fi)
+                print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (time.ctime(start),
+                                                                  time.ctime(end), end - start), file=failed_fi)
         print("</table></body></html>", file=fi)
         print("</table></body></html>", file=failed_fi)
         fi.close()

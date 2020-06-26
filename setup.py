@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from subprocess import Popen, PIPE
 
-scripts = [ 'scripts/print_something.py' ]
+scripts = ['scripts/print_something.py']
 
 Version = "1.0"
 p = Popen(
@@ -16,7 +16,7 @@ try:
     Version = "-".join(descr.split("-")[:-2])
     if Version == "":
         Version = descr
-except:
+except Exception:
     descr = Version
 
 
@@ -28,6 +28,8 @@ setup(name="testsrunner",
       packages=find_packages(),
       scripts=scripts,
       data_files=[("share/testsrunner",
-                   ["resources/testsrunner.json", "resources/image-compare.min.js", "resources/diff.html",
+                   ["resources/testsrunner.json",
+                    "resources/image-compare.min.js",
+                    "resources/diff.html",
                     "resources/coveragerc"])],
       )

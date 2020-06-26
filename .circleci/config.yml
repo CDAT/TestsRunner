@@ -80,6 +80,7 @@ aliases:
        source $WORKDIR/miniconda/etc/profile.d/conda.sh
        conda activate $ENV_NAME
        make run-tests conda=$WORKDIR/miniconda/bin/conda conda_env=$ENV_NAME
+    no_output_timeout: 60m
 
   - &conda_upload
     name: conda_upload
@@ -151,6 +152,9 @@ jobs:
          - store_artifacts:
               path: tests_html
               destination: tests_html
+         - store_artifacts:
+              path: tests_png
+              destination: tests_png
          - store_artifacts:
               path: spec_artifacts
               destination: spec_artifacts
