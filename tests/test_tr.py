@@ -44,18 +44,23 @@ class TestTestRunnerBase(unittest.TestCase):
                                              test_data_files_info=test_data_files)
 
     def testRun(self):
+        print("...testRun...")
         workdir = os.path.join(os.path.dirname(__file__), os.path.pardir)
         ret_code = self.runner.run(workdir, tests="tests/test_passing_test.py")
         self.assertEqual(ret_code, 0)
 
     def testGenerateHtml(self):
+        print("...testGenerateHtml...")
         workdir = os.path.join(os.path.dirname(__file__), os.path.pardir)
         ret_code = self.runner.run(workdir, tests="tests/test_passing_test.py")
         self.assertEqual(ret_code, 0)
+        print("....after run...")
         ret_code = self.runner._generate_html(workdir, open_browser=False)
         self.assertEqual(ret_code, 0)
+        print("...leaving...testGenerateHtml...")
 
     def testPackageResults(self):
+        print("...testPackageResults...")
         workdir = os.path.join(os.path.dirname(__file__), os.path.pardir)
         ret_code = self.runner.run(workdir, tests="tests/test_passing_test.py")
         self.assertEqual(ret_code, 0)
@@ -66,6 +71,7 @@ class TestTestRunnerBase(unittest.TestCase):
         self.assertEqual(ret_code, 0)
 
     def testGetBaselines(self):
+        print("...testGetBaselines...")
         workdir = os.path.join(os.path.dirname(__file__), os.path.pardir)
         data_dir = os.path.join(workdir, "uvcdat-testdata")
         if os.path.isdir(data_dir):
@@ -81,5 +87,6 @@ class TestTestRunnerBase(unittest.TestCase):
         self.assertEqual(ret_code, 0)
 
     def testSubprocess(self):
+        print("...testSubprocess...")
         subprocess.call(["print_something.py"])
         self.assertEqual(0, 0)

@@ -348,7 +348,6 @@ class TestRunnerBase(object):
 
     def _do_run_tests(self, workdir, test_names):
         ret_code = SUCCESS
-
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
@@ -591,6 +590,7 @@ class TestRunnerBase(object):
             test_names = self._get_tests(workdir, self.args.tests)
         else:
             test_names = [tests]
+
         if self.args.checkout_baseline:
             ret_code = self._get_baseline(workdir)
             if ret_code != SUCCESS:
