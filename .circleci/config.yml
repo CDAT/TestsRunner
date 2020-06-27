@@ -117,6 +117,7 @@ jobs:
          PKG_NAME: << pipeline.parameters.pkg_name >>
          REPO_NAME: << pipeline.parameters.repo_name >>
          LAST_STABLE: << pipeline.parameters.last_stable >>
+         ENV_NAME: << pipeline.parameters.env_name >>
          PY_VER: "3.7"
       steps:
          - checkout
