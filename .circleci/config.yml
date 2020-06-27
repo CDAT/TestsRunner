@@ -110,45 +110,27 @@ executors:
          xcode: "11.4.0"
 
 jobs:
-   build:
-      parameters:
-         os:
-            type: executor
-      executor: << parameters.os >>
+   build_test:
+      machine:
+         image: circleci/classic:latest
       environment:
          PKG_NAME: << pipeline.parameters.pkg_name >>
          REPO_NAME: << pipeline.parameters.repo_name >>
          LAST_STABLE: << pipeline.parameters.last_stable >>
+         PY_VER: "3.7"
       steps:
          - checkout
          - run: *setup_env
          - run: *setup_miniconda
          - run: *conda_rerender
          - run: *conda_build
+         - run: *setup_run_tests
+         - run: *run_tests
          - persist_to_workspace:
               root: .
               paths: 
                  - workdir
                  - artifacts
-
-   test:
-      parameters:
-         os:
-            type: executor
-         py_ver: 
-            type: string
-      executor: << parameters.os >>
-      environment:
-         PKG_NAME: << pipeline.parameters.pkg_name >>
-         ENV_NAME: << pipeline.parameters.env_name >>
-         PY_VER: << parameters.py_ver >>
-      steps:
-         - checkout
-         - attach_workspace:
-              at: .
-         - run: *setup_env
-         - run: *setup_run_tests
-         - run: *run_tests
          - store_artifacts:
               path: tests_html
               destination: tests_html
@@ -175,19 +157,7 @@ jobs:
 workflows:
    testsrunner:
       jobs:
-         - build:
-              matrix:
-                 parameters:
-                    os: [ linux, macos ]
-              name: build-<< matrix.os >>
-         - test:
-              matrix:
-                 parameters:
-                    os: [ linux, macos ]
-                    py_ver: [ "3.6", "3.7", "3.8"]
-              name: test-<< matrix.os >>-<< matrix.py_ver >>
-              requires:
-                 - build-<< matrix.os >>
+         - build_test
          - upload:
               requires:
-                 - test
+                 - build_test
