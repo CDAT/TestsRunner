@@ -73,11 +73,7 @@ conda-dump-env:
 	source $(conda_activate) $(conda_env); conda list --explicit > $(artifact_dir)/$(conda_env_filename).txt
 
 run-tests:
-	# source $(conda_activate) $(conda_env); python run_tests.py -H -v2
-	source $(conda_activate) $(conda_env); python run_tests.py -H -v2 `pwd`/tests/test_passing_test.py
-	source $(conda_activate) $(conda_env); python run_tests.py -H -v2 `pwd`/tests/test_timeout.py
-	source $(conda_activate) $(conda_env); python run_tests.py -H -v2 `pwd`/tests/test_tr_flake8.py
-	source $(conda_activate) $(conda_env); python run_tests.py -H -v2 `pwd`/tests/test_tr_timeout.py
+	source $(conda_activate) $(conda_env); python run_tests.py -H -v2
 
 run-coveralls:
 	source $(conda_activate) $(conda_env); coveralls;
