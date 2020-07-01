@@ -21,9 +21,6 @@ FAILURE = 1
 egg_path = pkg_resources.resource_filename(pkg_resources.Requirement.parse("testsrunner"), "share/testsrunner")
 
 
-multiprocessing.freeze_support()
-multiprocessing.set_start_method('fork')
-
 def _get_module_path(name):
     f = tempfile.NamedTemporaryFile(mode="w")
     print("from __future__ import print_function\nimport imp\n"
@@ -71,12 +68,6 @@ class TestRunnerBase(object):
            test_data_files_info: file name of a text file containing list of
                             data files needed for the test suite.
         """
-        #
-        # workaround for https://github.com/pyinstaller/pyinstaller/issues/4865
-        # running into this recursive loop with py3.8 macos
-        #
-        # multiprocessing.freeze_support()
-        # multiprocessing.set_start_method('fork')
 
         options_files.insert(0, os.path.join(
             egg_path, "testsrunner.json"))
@@ -364,6 +355,10 @@ class TestRunnerBase(object):
         #
         # multiprocessing.freeze_support()
         # multiprocessing.set_start_method('fork')
+        if multiprocessing.get_start_method() == 'spawn':
+            multiprocessing.freeze_support()
+            multiprocessing.set_start_method('fork')
+
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
