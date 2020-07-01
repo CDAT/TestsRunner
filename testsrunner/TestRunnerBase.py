@@ -68,8 +68,11 @@ class TestRunnerBase(object):
            test_data_files_info: file name of a text file containing list of
                             data files needed for the test suite.
         """
-        print("DEBUG DEBUG DEBUG.... __init__")
-        print("DEBUG DEBUG DEBUG start_method: {s}".format(s=multiprocessing.get_start_method()))
+
+        #
+        # workaround for https://github.com/pyinstaller/pyinstaller/issues/4865
+        # running into this recursive loop with py3.8 macos
+        #
         if multiprocessing.get_start_method() == 'spawn':
             multiprocessing.freeze_support()
             multiprocessing.set_start_method('fork', force=True)
@@ -354,13 +357,6 @@ class TestRunnerBase(object):
 
     def _do_run_tests(self, workdir, test_names):
         ret_code = SUCCESS
-        #
-        # workaround for https://github.com/pyinstaller/pyinstaller/issues/4865
-        # running into this recursive loop with py3.8 macos
-        #
-        # multiprocessing.freeze_support()
-        # multiprocessing.set_start_method('fork')
-
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
