@@ -69,6 +69,10 @@ class TestRunnerBase(object):
                             data files needed for the test suite.
         """
 
+        if multiprocessing.get_start_method() == 'spawn':
+            multiprocessing.freeze_support()
+            multiprocessing.set_start_method('fork')
+
         options_files.insert(0, os.path.join(
             egg_path, "testsrunner.json"))
         # Remove possible duplicates
@@ -355,9 +359,6 @@ class TestRunnerBase(object):
         #
         # multiprocessing.freeze_support()
         # multiprocessing.set_start_method('fork')
-        if multiprocessing.get_start_method() == 'spawn':
-            multiprocessing.freeze_support()
-            multiprocessing.set_start_method('fork')
 
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
