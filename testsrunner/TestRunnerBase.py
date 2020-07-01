@@ -68,6 +68,13 @@ class TestRunnerBase(object):
            test_data_files_info: file name of a text file containing list of
                             data files needed for the test suite.
         """
+        #
+        # workaround for https://github.com/pyinstaller/pyinstaller/issues/4865
+        # running into this recursive loop with py3.8 macos
+        #
+        multiprocessing.freeze_support()
+        multiprocessing.set_start_method('fork')
+
         options_files.insert(0, os.path.join(
             egg_path, "testsrunner.json"))
         # Remove possible duplicates
@@ -352,8 +359,8 @@ class TestRunnerBase(object):
         # workaround for https://github.com/pyinstaller/pyinstaller/issues/4865
         # running into this recursive loop with py3.8 macos
         #
-        multiprocessing.freeze_support()
-        multiprocessing.set_start_method('fork')
+        # multiprocessing.freeze_support()
+        # multiprocessing.set_start_method('fork')
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
         opts = self._prep_nose_options()
