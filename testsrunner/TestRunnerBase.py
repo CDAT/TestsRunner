@@ -68,7 +68,8 @@ class TestRunnerBase(object):
            test_data_files_info: file name of a text file containing list of
                             data files needed for the test suite.
         """
-
+        print("DEBUG DEBUG DEBUG.... __init__")
+        print("DEBUG DEBUG DEBUG start_method: {s}".format(s=multiprocessing.get_start_method()))
         if multiprocessing.get_start_method() == 'spawn':
             multiprocessing.freeze_support()
             multiprocessing.set_start_method('fork')
