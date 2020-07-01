@@ -72,7 +72,7 @@ class TestRunnerBase(object):
         print("DEBUG DEBUG DEBUG start_method: {s}".format(s=multiprocessing.get_start_method()))
         if multiprocessing.get_start_method() == 'spawn':
             multiprocessing.freeze_support()
-            multiprocessing.set_start_method('fork')
+            multiprocessing.set_start_method('fork', force=True)
 
         options_files.insert(0, os.path.join(
             egg_path, "testsrunner.json"))
