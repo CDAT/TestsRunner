@@ -68,6 +68,12 @@ class TestRunnerBase(object):
            test_data_files_info: file name of a text file containing list of
                             data files needed for the test suite.
         """
+        print("DEBUG DEBUG DEBUG.... __init__")
+        print("DEBUG DEBUG DEBUG start_method: {s}".format(s=multiprocessing.get_start_method()))
+        if multiprocessing.get_start_method() == 'spawn':
+            multiprocessing.freeze_support()
+            multiprocessing.set_start_method('fork', force=True)
+
         options_files.insert(0, os.path.join(
             egg_path, "testsrunner.json"))
         # Remove possible duplicates
@@ -161,8 +167,7 @@ class TestRunnerBase(object):
                 msg = "baseline does not exist for branch {}".format(branch)
                 raise Exception(msg)
             else:
-                print("Could not checkout branch `{}`, " +
-                      "fallback on `master`".format(branch))
+                print("Could not checkout branch `{}`, fallback on `master`".format(branch))
                 ret_code, cmd_output = self.__run_cmd("git checkout master")
         os.chdir(workdir)
         return(ret_code)
@@ -308,9 +313,9 @@ class TestRunnerBase(object):
             with open(".coveragerc") as f:
                 lines = f.readlines()
             with open(".coveragerc", "w") as f:
-                for l in lines:
-                    if "data_file" not in l:
-                        print(l, file=f)
+                for ln in lines:
+                    if "data_file" not in ln:
+                        print(ln, file=f)
         print("COV FILES:", coverage_files)
         # replace moduyle path with repo path
         if self.args.coverage_from_egg:
@@ -349,6 +354,12 @@ class TestRunnerBase(object):
 
     def _do_run_tests(self, workdir, test_names):
         ret_code = SUCCESS
+        #
+        # workaround for https://github.com/pyinstaller/pyinstaller/issues/4865
+        # running into this recursive loop with py3.8 macos
+        #
+        # multiprocessing.freeze_support()
+        # multiprocessing.set_start_method('fork')
 
         p = multiprocessing.Pool(self.ncpus)
         # Let's prep the options once and for all
@@ -387,9 +398,7 @@ class TestRunnerBase(object):
 
         if self.verbosity > 0:
             if len(outs) > 0:
-                print("Ran %i tests, %i failed (%.2f%% success)" %
-                      (len(outs), len(failed), 100. - float(len(failed)) /
-                       len(outs) * 100.))
+                print("Ran %i tests, %i failed (%.2f%% success)" % (len(outs), len(failed), 100. - float(len(failed)) / len(outs) * 100.))
             else:
                 print("No test run")
             if len(failed) > 0:
@@ -411,8 +420,7 @@ class TestRunnerBase(object):
         full_path = os.path.abspath(os.path.join(os.getcwd(), "..", path))
         if not os.path.exists(name):
             os.makedirs(name)
-        new_path = os.path.join(name, prefix + "_" +
-                                os.path.basename(full_path))
+        new_path = os.path.join(name, prefix + "_" + os.path.basename(full_path))
         try:
             shutil.copy(full_path, new_path)
         except Exception:
@@ -440,7 +448,7 @@ class TestRunnerBase(object):
                         try:
                             file2 = log[k].split()[2]
                         except Exception:
-                            file2 = log[k].split()[1][:-1]+log[j].split()[0]
+                            file2 = log[k].split()[1][:-1] + log[j].split()[0]
                             print("+++++++++++++++++++++++++", file2)
                 if log[j].find("Saving image diff") > -1:
                     diff = log[j].split()[-1]
@@ -544,12 +552,10 @@ class TestRunnerBase(object):
             t = result["times"]
             end = t["end"]
             start = t["start"]
-            print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                    time.ctime(start), time.ctime(end), end - start), file=fi)
+            print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (time.ctime(start), time.ctime(end), end - start), file=fi)
             if result["result"]:
-                print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (
-                        time.ctime(start), time.ctime(end), end - start),
-                      file=failed_fi)
+                print("<td>%s</td><td>%s</td><td>%s</td></tr>" % (time.ctime(start),
+                                                                  time.ctime(end), end - start), file=failed_fi)
         print("</table></body></html>", file=fi)
         print("</table></body></html>", file=failed_fi)
         fi.close()
@@ -597,6 +603,7 @@ class TestRunnerBase(object):
             test_names = self._get_tests(workdir, self.args.tests)
         else:
             test_names = [tests]
+
         if self.args.checkout_baseline:
             ret_code = self._get_baseline(workdir)
             if ret_code != SUCCESS:
