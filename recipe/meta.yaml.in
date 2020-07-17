@@ -1,12 +1,10 @@
-{% set name = "testsrunner" %}
-
 package:
-  name: {{ name|lower }}
-  version: @VERSION@
+  name: testsrunner
+  version: 8.2.1.rc1
 
 source:
-    git_rev: @UVCDAT_BRANCH@
-    git_url: git://github.com/cdat/testsrunner.git
+  url: https://github.com/CDAT/testsrunner/archive/v8.2.1.rc1.tar.gz
+  sha256: bddeb00e2293a53824f5e68a60f155a61c724d84ac66298128ca9b88f2eee796
 
 build:
   number: 0
