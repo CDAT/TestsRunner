@@ -2,11 +2,11 @@
 
 package:
   name: {{ name|lower }}
-  version: @VERSION@
+  version: 8.2.1
 
 source:
-    git_rev: @UVCDAT_BRANCH@
-    git_url: git://github.com/cdat/testsrunner.git
+  url: https://github.com/CDAT/testsrunner/archive/v8.2.1.tar.gz
+  sha256: 65da2777350d81d08098070e96e1239e5f4a1aebd98446bbb10298660014116d
 
 build:
   number: 0
